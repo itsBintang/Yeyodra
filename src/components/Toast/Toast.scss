@@ -1,0 +1,136 @@
+@import "../../scss/globals.scss";
+
+.toast {
+  animation-duration: 0.2s;
+  animation-timing-function: ease-in-out;
+  position: fixed;
+  background-color: rgba(30, 30, 30, 0.98);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  border: solid 1px rgba(255, 255, 255, 0.1);
+  right: calc($spacing-unit * 2);
+  bottom: calc($spacing-unit * 2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 10000;
+  max-width: 420px;
+  min-width: 300px;
+  animation-name: enter;
+  transform: translateY(0);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  &--closing {
+    animation-name: exit;
+    transform: translateY(100%);
+  }
+
+  &__content {
+    display: flex;
+    gap: calc($spacing-unit * 2);
+    padding: calc($spacing-unit * 2);
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__message-container {
+    display: flex;
+    gap: $spacing-unit;
+    flex-direction: column;
+    width: 100%;
+
+    p {
+      margin: 0;
+      color: $muted-color;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+
+  &__progress {
+    width: 100%;
+    height: 4px;
+    border: none;
+
+    &::-webkit-progress-bar {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &::-webkit-progress-value {
+      background-color: rgba(255, 255, 255, 0.3);
+      transition: width 0.1s linear;
+    }
+
+    &::-moz-progress-bar {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &__close-button {
+    color: $body-color;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease-in-out;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 1;
+      color: $color-text;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__icon {
+    &--success {
+      color: #34d399;
+      width: 20px;
+      height: 20px;
+    }
+
+    &--error {
+      color: #ef4444;
+      width: 20px;
+      height: 20px;
+    }
+
+    &--warning {
+      color: #f59e0b;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+@keyframes enter {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+

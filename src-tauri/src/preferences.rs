@@ -18,6 +18,13 @@ pub struct UserPreferences {
     
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    
+    #[serde(rename = "steamtoolsEnabled", default = "default_true")]
+    pub steamtools_enabled: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for UserPreferences {
@@ -26,6 +33,7 @@ impl Default for UserPreferences {
             downloads_path: None,
             steam_path: detect_steam_path(),
             language: Some("en".to_string()),
+            steamtools_enabled: true,
         }
     }
 }
@@ -130,6 +138,7 @@ pub fn update_user_preferences(
     if updates.language.is_some() {
         current.language = updates.language;
     }
+    current.steamtools_enabled = updates.steamtools_enabled;
     
     // Ensure directory exists
     if let Some(parent) = path.parent() {

@@ -5,6 +5,7 @@ import "./Modal.scss";
 export interface ModalProps {
   visible: boolean;
   title: string;
+  description?: string;
   onClose: () => void;
   children: ReactNode;
   large?: boolean;
@@ -13,6 +14,7 @@ export interface ModalProps {
 export function Modal({
   visible,
   title,
+  description,
   onClose,
   children,
   large = false,
@@ -40,7 +42,10 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal__header">
-          <h3 className="modal__title">{title}</h3>
+          <div className="modal__header-content">
+            <h3 className="modal__title">{title}</h3>
+            {description && <p className="modal__description">{description}</p>}
+          </div>
           <button
             type="button"
             className="modal__close"

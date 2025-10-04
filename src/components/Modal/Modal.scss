@@ -31,10 +31,17 @@
 
   &__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     padding: globals.$spacing-unit * 3;
     border-bottom: 1px solid globals.$border-color;
+  }
+
+  &__header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
   }
 
   &__title {
@@ -42,6 +49,13 @@
     font-weight: 600;
     margin: 0;
     color: globals.$color-text;
+  }
+
+  &__description {
+    font-size: 14px;
+    color: globals.$muted-color;
+    margin: 0;
+    line-height: 1.5;
   }
 
   &__close {

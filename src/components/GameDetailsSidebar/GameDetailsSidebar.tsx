@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { GameStats, ShopDetails } from "@/types";
 import { Button } from "../Button";
 import { SidebarSection } from "../SidebarSection/SidebarSection";
+import { GameLanguageSection } from "./GameLanguageSection";
 import "./GameDetailsSidebar.scss";
 
 interface GameDetailsSidebarProps {
@@ -56,7 +57,7 @@ export function GameDetailsSidebar({ shopDetails, stats }: GameDetailsSidebarPro
                 {t("download_count")}
               </p>
               <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.downloadCount)}
+                {formatNumber(stats.download_count)}
               </p>
             </div>
 
@@ -66,7 +67,7 @@ export function GameDetailsSidebar({ shopDetails, stats }: GameDetailsSidebarPro
                 {t("player_count")}
               </p>
               <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.playerCount)}
+                {formatNumber(stats.player_count)}
               </p>
             </div>
           </div>
@@ -149,6 +150,9 @@ export function GameDetailsSidebar({ shopDetails, stats }: GameDetailsSidebarPro
           )}
         </div>
       </SidebarSection>
+
+      {/* Language Support */}
+      <GameLanguageSection shopDetails={shopDetails} />
     </aside>
   );
 }

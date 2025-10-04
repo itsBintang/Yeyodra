@@ -4,13 +4,14 @@ import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
-import { GameOptionsModal } from "@/components/GameOptionsModal/GameOptionsModal";
+import { GameOptionsModal, DownloadModal } from "@/components";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
 
 function GameDetailsContent() {
-  const { shopDetails, stats, isLoading, game, showGameOptionsModal, setShowGameOptionsModal, updateGame } = useGameDetails();
+  const { shopDetails, stats, isLoading, game, repacks, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
+  const { objectId } = useParams<{ objectId: string }>();
 
   const handleCloudSaveClick = () => {
     // TODO: Implement cloud save modal
@@ -157,7 +158,7 @@ function GameDetailsContent() {
         </section>
       </div>
 
-      {/* Game Options Modal */}
+      {/* Modals */}
       {game && (
         <GameOptionsModal
           visible={showGameOptionsModal}
@@ -166,6 +167,15 @@ function GameDetailsContent() {
           onGameUpdate={updateGame}
         />
       )}
+      
+      <DownloadModal
+        visible={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        appId={objectId || ""}
+        gameName={shopDetails?.name || ""}
+        gameImageUrl={stats?.assets?.libraryImageUrl || shopDetails?.header_image}
+        hasRepacks={repacks && repacks.length > 0}
+      />
     </>
   );
 }

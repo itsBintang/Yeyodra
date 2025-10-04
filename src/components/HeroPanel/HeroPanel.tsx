@@ -16,7 +16,7 @@ export function HeroPanel() {
       return (
         <>
           <p>{t("updated_at", { updated_at: latestRepack.uploadDate || "N/A" })}</p>
-          <p>{t("download_options", { count: repacksCount })}</p>
+          <p>{t("download_count_available", { count: repacksCount })}</p>
         </>
       );
     }

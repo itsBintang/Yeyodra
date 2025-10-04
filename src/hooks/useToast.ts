@@ -1,29 +1,52 @@
 import { useCallback } from "react";
-
-export interface ToastOptions {
-  title: string;
-  message?: string;
-  duration?: number;
-}
+import { useAppDispatch } from "./useAppDispatch";
+import { showToast } from "@/features/toastSlice";
 
 export function useToast() {
-  const showToast = useCallback((options: ToastOptions) => {
-    console.log("Toast:", options);
-    // TODO: Implement toast functionality with Redux
-  }, []);
+  const dispatch = useAppDispatch();
 
-  const showSuccessToast = useCallback((message: string) => {
-    showToast({ title: "Success", message, duration: 3000 });
-  }, [showToast]);
+  const showSuccessToast = useCallback(
+    (title: string, message?: string, duration?: number) => {
+      dispatch(
+        showToast({
+          title,
+          message,
+          type: "success",
+          duration,
+        })
+      );
+    },
+    [dispatch]
+  );
 
-  const showErrorToast = useCallback((message: string) => {
-    showToast({ title: "Error", message, duration: 5000 });
-  }, [showToast]);
+  const showErrorToast = useCallback(
+    (title: string, message?: string, duration?: number) => {
+      dispatch(
+        showToast({
+          title,
+          message,
+          type: "error",
+          duration,
+        })
+      );
+    },
+    [dispatch]
+  );
 
-  return {
-    showToast,
-    showSuccessToast,
-    showErrorToast,
-  };
+  const showWarningToast = useCallback(
+    (title: string, message?: string, duration?: number) => {
+      dispatch(
+        showToast({
+          title,
+          message,
+          type: "warning",
+          duration,
+        })
+      );
+    },
+    [dispatch]
+  );
+
+  return { showSuccessToast, showErrorToast, showWarningToast };
 }
 

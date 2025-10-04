@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { SettingsGeneral } from "./SettingsGeneral";
+import { SettingsDownloadSources } from "./SettingsDownloadSources";
 import "./Settings.scss";
 
 export function Settings() {
@@ -16,7 +17,7 @@ export function Settings() {
 
   const renderContent = () => {
     if (currentTab === 0) return <SettingsGeneral />;
-    if (currentTab === 1) return <div>Coming soon...</div>;
+    if (currentTab === 1) return <SettingsDownloadSources />;
     return <div>Coming soon...</div>;
   };
 

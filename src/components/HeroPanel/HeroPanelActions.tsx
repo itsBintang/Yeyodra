@@ -3,10 +3,9 @@ import {
   GearIcon,
   HeartFillIcon,
   HeartIcon,
-  PlayIcon,
   PlusCircleIcon,
 } from "@primer/octicons-react";
-import { Button } from "../Button";
+import { Button } from "@/components";
 import { useGameDetails } from "@/contexts/game-details";
 import { useLibrary } from "@/hooks";
 import { useTranslation } from "react-i18next";
@@ -17,7 +16,7 @@ import { useState } from "react";
 
 export function HeroPanelActions() {
   const { t } = useTranslation("game_details");
-  const { game, repacks, shopDetails, updateGame, setShowGameOptionsModal } = useGameDetails();
+  const { game, shopDetails, updateGame, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
   const { updateLibrary } = useLibrary();
   const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
   
@@ -54,8 +53,7 @@ export function HeroPanelActions() {
   };
 
   const handleDownloadClick = () => {
-    // TODO: Implement download modal/repack selection
-    console.log("Download clicked");
+    setShowDownloadModal(true);
   };
 
   const handleFavoriteClick = () => {
@@ -86,15 +84,15 @@ export function HeroPanelActions() {
   // Game IS in library: Show action buttons with separator
   return (
     <div className="hero-panel-actions__container">
-      <Button
-        onClick={handleDownloadClick}
-        theme="outline"
-        disabled={toggleLibraryGameDisabled}
-        className="hero-panel-actions__action"
-      >
-        <DownloadIcon />
-        {t("download")}
-      </Button>
+        <Button
+          onClick={handleDownloadClick}
+          theme="outline"
+          disabled={toggleLibraryGameDisabled}
+          className="hero-panel-actions__action"
+        >
+          <DownloadIcon />
+          {t("download")}
+        </Button>
       
       <div className="hero-panel-actions__separator" />
       

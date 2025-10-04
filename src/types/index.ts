@@ -161,18 +161,56 @@ export type ShopDetailsWithAssets = ShopDetails & {
   assets: ShopAssets | null;
 };
 
-// Game Download Status
-export type DownloadStatus = "active" | "paused" | "complete" | "error";
+// Download History Types
+export interface CompletedDownload {
+  appId: string;
+  title: string;
+  downloadType: string; // "SteamTools" or "Repack"
+  completedAt: number; // Unix timestamp
+  iconUrl: string | null;
+}
+
+// Aria2c Download Types
+export interface Aria2DownloadStatus {
+  gid: string;
+  status: "active" | "waiting" | "paused" | "error" | "complete" | "removed";
+  totalLength: string;
+  completedLength: string;
+  downloadSpeed: string;
+  files: Aria2FileInfo[];
+}
+
+export interface Aria2FileInfo {
+  path: string;
+  length: string;
+  completedLength: string;
+}
+
+export interface Aria2GlobalStat {
+  downloadSpeed: string;
+  numActive: string;
+  numWaiting: string;
+  numStopped: string;
+}
+
+// Game Download Status (Extended with aria2c integration)
+export type DownloadStatus = "active" | "paused" | "complete" | "error" | "queued";
 
 export interface Download {
   shop: string;
   objectId: string;
+  title: string;
   uri: string;
   downloadPath: string;
   progress: number;
   status: DownloadStatus;
   bytesDownloaded: number;
   fileSize: number;
+  downloadSpeed?: number;
+  gid?: string; // Aria2c GID for tracking
+  filename?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Library Game (Game in user's library)

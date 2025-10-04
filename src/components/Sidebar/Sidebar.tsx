@@ -5,6 +5,7 @@ import classNames from "classnames";
 import { routes } from "./routes";
 import { SidebarProfile } from "./SidebarProfile";
 import { TextField } from "../TextField/TextField";
+import { SteamRestartButton } from "../SteamRestartButton/SteamRestartButton";
 import { useLibrary } from "@/hooks";
 import type { LibraryGame } from "@/types";
 import "./Sidebar.scss";
@@ -237,6 +238,11 @@ export function Sidebar() {
               )}
             </ul>
           </section>
+        </div>
+
+        {/* Steam Restart Button - Fixed at bottom like profile */}
+        <div className="sidebar__steam-control">
+          <SteamRestartButton />
         </div>
       </div>
 

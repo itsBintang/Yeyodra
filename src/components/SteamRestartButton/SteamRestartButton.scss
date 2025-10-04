@@ -1,0 +1,63 @@
+@import "../../scss/globals.scss";
+
+.steam-restart-button {
+  display: flex;
+  align-items: center;
+  gap: $spacing-unit;
+  width: 100%;
+  padding: $spacing-unit * 1.5;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: $color-text;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--restarting {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+
+    &--spinning {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__text {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

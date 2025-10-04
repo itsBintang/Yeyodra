@@ -239,5 +239,11 @@
       display: block;
     }
   }
+
+  &__steam-control {
+    padding: calc(globals.$spacing-unit * 2);
+    border-top: 1px solid globals.$border-color;
+    background: rgba(0, 0, 0, 0.1);
+  }
 }
 

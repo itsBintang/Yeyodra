@@ -1,0 +1,124 @@
+@use "../../scss/globals.scss";
+
+.game-language-section {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  overflow: hidden;
+
+  // Table Header
+  &__header {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid globals.$border-color;
+  }
+
+  &__header-item {
+    display: flex;
+    align-items: center;
+    color: globals.$muted-color;
+    font-size: globals.$small-font-size;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex: 1;
+    padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2.5);
+
+    // Center columns for Caption and Audio
+    &--center {
+      justify-content: flex-start;
+      flex: 0 0 80px;
+    }
+  }
+
+  // Table Body
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Table Row
+  &__row {
+    display: flex;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // Table Cell
+  &__cell {
+    padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2.5);
+    font-size: globals.$body-font-size;
+    color: globals.$body-color;
+    display: flex;
+    align-items: center;
+    flex: 1;
+
+    // Language column
+    &--language {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // Center columns for Caption and Audio
+    &--center {
+      justify-content: flex-start;
+      flex: 0 0 80px;
+    }
+  }
+
+  // Check icon (for supported features)
+  &__check {
+    color: globals.$body-color;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  // Cross icon (for unsupported features)
+  &__cross {
+    color: globals.$body-color;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    &__header-item,
+    &__cell {
+      padding: calc(globals.$spacing-unit * 1.25) calc(globals.$spacing-unit * 1.5);
+    }
+
+    &__header-item--center,
+    &__cell--center {
+      flex: 0 0 70px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__header-item,
+    &__cell {
+      padding: calc(globals.$spacing-unit * 1) calc(globals.$spacing-unit * 1);
+      font-size: calc(globals.$small-font-size * 0.9);
+    }
+
+    &__header-item--center,
+    &__cell--center {
+      flex: 0 0 60px;
+    }
+
+    &__check,
+    &__cross {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+

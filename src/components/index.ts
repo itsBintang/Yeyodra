@@ -19,4 +19,7 @@ export { SidebarSection } from "./SidebarSection/SidebarSection";
 export { GameDetailsSidebar } from "./GameDetailsSidebar/GameDetailsSidebar";
 export { Modal } from "./Modal/Modal";
 export { GameOptionsModal } from "./GameOptionsModal/GameOptionsModal";
+export { DownloadModal } from "./DownloadModal/DownloadModal";
+export { Toast } from "./Toast/Toast";
+export { SteamRestartButton } from "./SteamRestartButton/SteamRestartButton";
 

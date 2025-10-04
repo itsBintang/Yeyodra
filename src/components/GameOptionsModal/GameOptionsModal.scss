@@ -27,6 +27,12 @@
   &__danger-zone {
     border-top: 1px solid globals.$border-color;
     padding-top: globals.$spacing-unit * 3;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: globals.$spacing-unit / 2;
+    }
   }
 
   &__confirmation {

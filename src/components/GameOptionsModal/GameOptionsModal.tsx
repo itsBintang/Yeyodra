@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { TrashIcon } from "@primer/octicons-react";
 import { Modal } from "../Modal/Modal";
 import { TextField } from "../TextField/TextField";
 import { Button } from "../Button";
-import { useLibrary } from "@/hooks";
+import { useLibrary, useToast } from "@/hooks";
 import type { LibraryGame } from "@/types";
 import "./GameOptionsModal.scss";
 
@@ -26,7 +27,9 @@ export function GameOptionsModal({
   const { t } = useTranslation("game_options");
   const navigate = useNavigate();
   const { updateLibrary } = useLibrary();
+  const { showSuccessToast, showErrorToast } = useToast();
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleSelectExecutable = async () => {
     try {
@@ -53,23 +56,37 @@ export function GameOptionsModal({
     }
   };
 
-  const handleRemoveFromLibrary = async () => {
+  const handleRemoveGame = async () => {
+    if (isRemoving) return;
+    
+    setIsRemoving(true);
     try {
+      // Remove SteamTools files first
+      const result = await invoke<{ success: boolean; message: string }>("remove_game", {
+        appId: game.objectId,
+      });
+      
+      // Then remove from library
       await invoke("remove_library_game", {
         shop: game.shop,
         objectId: game.objectId,
       });
       
-      // Update both game details and library list (like Hydra)
+      // Update library
       await Promise.all([
         onGameUpdate(),
         updateLibrary(),
       ]);
       
+      showSuccessToast(t("remove_game"), "Game removed successfully");
+      setShowRemoveConfirmation(false);
       onClose();
       navigate("/");
     } catch (error) {
-      console.error("Failed to remove game from library:", error);
+      console.error("Failed to remove game:", error);
+      showErrorToast(t("remove_game"), `Failed to remove game: ${error}`);
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -103,27 +120,33 @@ export function GameOptionsModal({
               theme="danger"
               onClick={() => setShowRemoveConfirmation(true)}
             >
-              {t("remove_from_library")}
+              <TrashIcon size={16} />
+              {t("remove_game")}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Remove Confirmation Modal */}
+      {/* Remove Game Confirmation Modal */}
       <Modal
         visible={showRemoveConfirmation}
-        title={t("remove_from_library")}
+        title={t("remove_game")}
         onClose={() => setShowRemoveConfirmation(false)}
       >
         <div className="game-options-modal__confirmation">
           <p>{t("remove_game_confirmation", { game_name: game.title })}</p>
           <div className="game-options-modal__confirmation-actions">
-            <Button theme="danger" onClick={handleRemoveFromLibrary}>
-              {t("remove")}
+            <Button 
+              theme="danger" 
+              onClick={handleRemoveGame}
+              disabled={isRemoving}
+            >
+              {isRemoving ? t("removing") : t("remove")}
             </Button>
             <Button
               theme="outline"
               onClick={() => setShowRemoveConfirmation(false)}
+              disabled={isRemoving}
             >
               {t("cancel")}
             </Button>

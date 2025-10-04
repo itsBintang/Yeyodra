@@ -29,6 +29,8 @@ export interface GameDetailsContext {
   // Modal States
   showGameOptionsModal: boolean;
   setShowGameOptionsModal: (show: boolean) => void;
+  showDownloadModal: boolean;
+  setShowDownloadModal: (show: boolean) => void;
   
   // Actions
   updateRepacks: () => Promise<void>;
@@ -43,6 +45,8 @@ const gameDetailsContext = createContext<GameDetailsContext>({
   isLoading: true,
   showGameOptionsModal: false,
   setShowGameOptionsModal: () => {},
+  showDownloadModal: false,
+  setShowDownloadModal: () => {},
   updateRepacks: async () => {},
   updateGame: async () => {},
 });
@@ -69,6 +73,7 @@ export function GameDetailsProvider({
   const [game, setGame] = useState<LibraryGame | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showGameOptionsModal, setShowGameOptionsModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   // Fetch shop details (Steam API)
   const fetchShopDetails = useCallback(async () => {
@@ -191,10 +196,12 @@ export function GameDetailsProvider({
       isLoading,
       showGameOptionsModal,
       setShowGameOptionsModal,
+      showDownloadModal,
+      setShowDownloadModal,
       updateRepacks,
       updateGame,
     }),
-    [shopDetails, stats, repacks, game, isLoading, showGameOptionsModal, updateRepacks, updateGame]
+    [shopDetails, stats, repacks, game, isLoading, showGameOptionsModal, showDownloadModal, updateRepacks, updateGame]
   );
 
   return <Provider value={value}>{children}</Provider>;
