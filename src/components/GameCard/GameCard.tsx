@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge } from "../Badge/Badge";
+import SteamLogo from "@/assets/steam-logo.svg?react";
 import "./GameCard.scss";
 
 interface GameStats {
@@ -18,6 +19,10 @@ export interface GameCardProps
   > {
   game: any;
 }
+
+const shopIcon = {
+  steam: <SteamLogo className="game-card__shop-icon" />,
+};
 
 export function GameCard({ game, ...props }: GameCardProps) {
   const { t } = useTranslation("game_card");
@@ -70,10 +75,11 @@ export function GameCard({ game, ...props }: GameCardProps) {
 
         <div className="game-card__content">
           <div className="game-card__title-container">
+            {shopIcon[game.shop as keyof typeof shopIcon]}
             <p className="game-card__title">{game.title}</p>
           </div>
 
-          {uniqueRepackers.length > 0 ? (
+          {uniqueRepackers.length > 0 && (
             <ul className="game-card__download-options">
               {firstThreeRepackers.map((repacker) => (
                 <li key={repacker}>
@@ -89,8 +95,6 @@ export function GameCard({ game, ...props }: GameCardProps) {
                 </li>
               )}
             </ul>
-          ) : (
-            <p className="game-card__no-download-label">{t("no_downloads")}</p>
           )}
 
           <div className="game-card__specifics">

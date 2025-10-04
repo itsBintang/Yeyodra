@@ -1,3 +1,5 @@
+import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
+import { Button } from "../Button";
 import "./Pagination.scss";
 
 export interface PaginationProps {
@@ -11,99 +13,85 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
     return new Intl.NumberFormat("en-US").format(num);
   };
 
-  const handlePrevious = () => {
-    if (page > 1) {
-      onPageChange(page - 1);
-    }
-  };
+  if (totalPages <= 1) return null;
 
-  const handleNext = () => {
-    if (page < totalPages) {
-      onPageChange(page + 1);
-    }
-  };
+  const visiblePages = 3;
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
+  let startPage = Math.max(1, page - 1);
+  let endPage = startPage + visiblePages - 1;
 
-    if (totalPages <= maxVisible) {
-      // Show all pages
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Show first page
-      pages.push(1);
-
-      if (page > 3) {
-        pages.push("...");
-      }
-
-      // Show pages around current
-      const start = Math.max(2, page - 1);
-      const end = Math.min(totalPages - 1, page + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (page < totalPages - 2) {
-        pages.push("...");
-      }
-
-      // Show last page
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
-
-  if (totalPages <= 1) {
-    return null;
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - visiblePages + 1);
   }
 
   return (
     <div className="pagination">
-      <button
+      <Button
+        theme="outline"
+        onClick={() => onPageChange(page - 1)}
         className="pagination__button"
-        onClick={handlePrevious}
         disabled={page === 1}
       >
-        ←
-      </button>
+        <ChevronLeftIcon />
+      </Button>
 
-      <div className="pagination__pages">
-        {getPageNumbers().map((pageNum, index) => {
-          if (pageNum === "...") {
-            return (
-              <span key={`ellipsis-${index}`} className="pagination__ellipsis">
-                ...
-              </span>
-            );
-          }
+      {page > 2 && (
+        <>
+          <Button
+            theme="outline"
+            onClick={() => onPageChange(1)}
+            className="pagination__button"
+            disabled={page === 1}
+          >
+            {1}
+          </Button>
 
-          return (
-            <button
-              key={pageNum}
-              className={`pagination__page ${
-                pageNum === page ? "pagination__page--active" : ""
-              }`}
-              onClick={() => onPageChange(pageNum as number)}
-            >
-              {formatNumber(pageNum as number)}
-            </button>
-          );
-        })}
-      </div>
+          <div className="pagination__ellipsis">
+            <span className="pagination__ellipsis-text">...</span>
+          </div>
+        </>
+      )}
 
-      <button
+      {Array.from(
+        { length: endPage - startPage + 1 },
+        (_, i) => startPage + i
+      ).map((pageNumber) => (
+        <Button
+          theme={page === pageNumber ? "primary" : "outline"}
+          key={pageNumber}
+          className="pagination__button"
+          onClick={() => onPageChange(pageNumber)}
+        >
+          {formatNumber(pageNumber)}
+        </Button>
+      ))}
+
+      {page < totalPages - 1 && (
+        <>
+          <div className="pagination__ellipsis">
+            <span className="pagination__ellipsis-text">...</span>
+          </div>
+
+          <Button
+            theme="outline"
+            onClick={() => onPageChange(totalPages)}
+            className="pagination__button"
+            disabled={page === totalPages}
+          >
+            {formatNumber(totalPages)}
+          </Button>
+        </>
+      )}
+
+      <Button
+        theme="outline"
+        onClick={() => onPageChange(page + 1)}
         className="pagination__button"
-        onClick={handleNext}
         disabled={page === totalPages}
       >
-        →
-      </button>
+        <ChevronRightIcon />
+      </Button>
     </div>
   );
 }

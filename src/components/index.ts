@@ -9,6 +9,7 @@ export { Pagination } from "./Pagination/Pagination";
 export { FilterItem } from "./FilterItem/FilterItem";
 export { FilterSection } from "./FilterSection/FilterSection";
 export { TextField } from "./TextField/TextField";
+export { SelectField } from "./SelectField/SelectField";
 export { CheckboxField } from "./CheckboxField/CheckboxField";
 export { HeroPanel } from "./HeroPanel/HeroPanel";
 export { HeroPanelActions } from "./HeroPanel/HeroPanelActions";
@@ -16,4 +17,6 @@ export { DescriptionHeader } from "./DescriptionHeader/DescriptionHeader";
 export { GallerySlider } from "./GallerySlider/GallerySlider";
 export { SidebarSection } from "./SidebarSection/SidebarSection";
 export { GameDetailsSidebar } from "./GameDetailsSidebar/GameDetailsSidebar";
+export { Modal } from "./Modal/Modal";
+export { GameOptionsModal } from "./GameOptionsModal/GameOptionsModal";
 

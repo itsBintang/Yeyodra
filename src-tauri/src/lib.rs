@@ -4,7 +4,7 @@ mod preferences;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
-use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, get_shop_assets};
+use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, get_shop_assets, update_game_executable_path};
 use preferences::{UserPreferences, get_user_preferences as get_prefs, update_user_preferences as update_prefs};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -113,6 +113,16 @@ fn update_user_preferences(
     update_prefs(&app_handle, preferences)
 }
 
+#[tauri::command]
+fn update_library_game_executable(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+    executable_path: Option<String>,
+) -> Result<LibraryGame, String> {
+    update_game_executable_path(&app_handle, &shop, &object_id, executable_path)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -134,7 +144,8 @@ pub fn run() {
             remove_library_game,
             save_game_shop_assets,
             get_user_preferences,
-            update_user_preferences
+            update_user_preferences,
+            update_library_game_executable
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

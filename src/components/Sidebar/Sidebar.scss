@@ -123,6 +123,39 @@
     font-weight: bold;
   }
 
+  &__section-actions {
+    display: flex;
+    gap: globals.$spacing-unit;
+    align-items: center;
+  }
+
+  &__icon-button {
+    background: none;
+    border: none;
+    color: globals.$muted-color;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    &:active {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &--active {
+      color: globals.$brand-teal;
+    }
+
+    svg {
+      display: block;
+    }
+  }
+
   &__container {
     display: flex;
     flex-direction: column;

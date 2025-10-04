@@ -2,14 +2,22 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Button, TextField } from "@/components";
+import { Button, TextField, SelectField } from "@/components";
 import type { UserPreferences } from "@/types";
+import { languageNames } from "@/locales";
 import "./SettingsGeneral.scss";
 
 export function SettingsGeneral() {
-  const { t } = useTranslation("settings");
+  const { t, i18n } = useTranslation("settings");
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Language options dari languageNames
+  const languageOptions = Object.entries(languageNames).map(([key, name]) => ({
+    key,
+    value: key,
+    label: name,
+  }));
 
   useEffect(() => {
     loadPreferences();
@@ -19,6 +27,11 @@ export function SettingsGeneral() {
     try {
       const prefs = await invoke<UserPreferences>("get_user_preferences");
       setPreferences(prefs);
+      
+      // Set current language
+      if (prefs.language) {
+        i18n.changeLanguage(prefs.language);
+      }
     } catch (error) {
       console.error("Failed to load preferences:", error);
     } finally {
@@ -37,6 +50,12 @@ export function SettingsGeneral() {
     } catch (error) {
       console.error("Failed to update preferences:", error);
     }
+  };
+
+  const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const language = event.target.value;
+    await updatePreferences({ language });
+    i18n.changeLanguage(language);
   };
 
   const handleChooseDownloadsPath = async () => {
@@ -104,6 +123,13 @@ export function SettingsGeneral() {
             ? t("steam_path_custom")
             : t("steam_path_auto")
         }
+      />
+
+      <SelectField
+        label={t("language")}
+        value={preferences?.language || "en"}
+        onChange={handleLanguageChange}
+        options={languageOptions}
       />
     </div>
   );

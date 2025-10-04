@@ -189,6 +189,8 @@ export interface LibraryGame {
   isDeleted: boolean;
   favorite: boolean;
   isPinned: boolean;
+  executablePath?: string | null;
+  launchOptions?: string | null;
 }
 
 // Game Repack

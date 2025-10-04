@@ -107,9 +107,11 @@ export function Catalogue() {
 
   // Steam genres mapping (multi-language support)
   const steamGenresMapping = useMemo<Record<string, string>>(() => {
-    if (!steamGenres[language]) return {};
+    // Fallback to English if language not available
+    const genresInLanguage = steamGenres[language] || steamGenres["en"];
+    if (!genresInLanguage) return {};
 
-    return steamGenres[language].reduce((prev, genre, index) => {
+    return genresInLanguage.reduce((prev, genre, index) => {
       prev[genre] = steamGenres["en"][index];
       return prev;
     }, {} as Record<string, string>);
@@ -128,9 +130,11 @@ export function Catalogue() {
 
   // Steam user tags filter items
   const steamUserTagsFilterItems = useMemo(() => {
-    if (!steamUserTags[language]) return [];
+    // Fallback to English if language not available
+    const tagsInLanguage = steamUserTags[language] || steamUserTags["en"];
+    if (!tagsInLanguage) return [];
 
-    return Object.entries(steamUserTags[language])
+    return Object.entries(tagsInLanguage)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
       .map(([key, value]) => ({
         label: key,
@@ -154,8 +158,8 @@ export function Catalogue() {
 
       ...filters.tags.map((tag) => ({
         label:
-          Object.keys(steamUserTags[language] || {}).find(
-            (key) => steamUserTags[language][key] === tag
+          Object.keys((steamUserTags[language] || steamUserTags["en"]) || {}).find(
+            (key) => (steamUserTags[language] || steamUserTags["en"])[key] === tag
           ) || tag.toString(),
         orbColor: filterCategoryColors.tags,
         key: "tags" as const,

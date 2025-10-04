@@ -25,7 +25,8 @@
     "show_playable_only_tooltip": "Show playable only",
     "add_custom_game_tooltip": "Add custom game",
     "game_has_no_executable": "Game has no executable",
-    "no_games_in_library": "No games in library"
+    "no_games_in_library": "No games in library",
+    "no_results": "No results found"
   },
   "header": {
     "home": "Home",
@@ -45,7 +46,6 @@
     "start_typing": "Start typing to search..."
   },
   "game_card": {
-    "no_downloads": "No downloads available",
     "available": "available"
   },
   "catalogue": {
@@ -74,7 +74,6 @@
     "minimum": "Minimum",
     "recommended": "Recommended",
     "information": "Information",
-    "no_downloads": "No downloads available",
     "updated_at": "Updated: {{updated_at}}",
     "download_options": "{{count}} download option available",
     "download_options_plural": "{{count}} download options available",
@@ -93,12 +92,26 @@
     "account": "Account",
     "downloads_path": "Downloads path",
     "steam_path": "Steam installation path",
+    "language": "Language",
     "change": "Change",
     "not_set": "Not set",
     "auto_detected": "Auto-detected",
     "steam_path_custom": "Using custom Steam path",
     "steam_path_auto": "Steam path was automatically detected from Windows Registry",
     "loading": "Loading settings..."
+  },
+  "game_options": {
+    "title": "Options",
+    "executable": "Executable",
+    "executable_description": "Path of the file that will be executed when \"Play\" is clicked",
+    "no_executable": "No executable selected",
+    "select": "Select",
+    "danger_zone": "Danger zone",
+    "danger_zone_description": "Remove this game from your library or the files downloaded by Chaos",
+    "remove_from_library": "Remove from library",
+    "remove_game_confirmation": "Are you sure you want to remove {{game_name}} from your library?",
+    "remove": "Remove",
+    "cancel": "Cancel"
   }
 }
 

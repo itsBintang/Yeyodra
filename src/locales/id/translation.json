@@ -1,0 +1,117 @@
+{
+    "app": {
+      "welcome": "Selamat datang di Chaos",
+      "description": "Aplikasi Tauri modern yang dibuat dengan React dan TypeScript"
+    },
+    "common": {
+      "loading": "Memuat...",
+      "error": "Kesalahan",
+      "success": "Berhasil"
+    },
+    "sidebar": {
+      "home": "Beranda",
+      "catalogue": "Katalog",
+      "downloads": "Unduhan",
+      "settings": "Pengaturan",
+      "my_library": "Perpustakaan saya",
+      "favorites": "Favorit",
+      "sign_in": "Masuk",
+      "friends": "Teman",
+      "need_help": "Butuh bantuan?",
+      "filter": "Filter",
+      "downloading": "Mengunduh {{title}} ({{percentage}}%)",
+      "queued": "{{title}} (Antrian)",
+      "paused": "{{title}} (Dijeda)",
+      "show_playable_only_tooltip": "Tampilkan yang dapat dimainkan saja",
+      "add_custom_game_tooltip": "Tambahkan game kustom",
+      "game_has_no_executable": "Game tidak memiliki file eksekusi",
+      "no_games_in_library": "Tidak ada game di perpustakaan",
+      "no_results": "Tidak ada hasil ditemukan"
+    },
+    "header": {
+      "home": "Beranda",
+      "catalogue": "Katalog",
+      "downloads": "Unduhan",
+      "settings": "Pengaturan",
+      "search": "Cari",
+      "search_results": "Hasil pencarian"
+    },
+    "home": {
+      "featured": "Unggulan",
+      "hot": "Sedang populer",
+      "weekly": "Game terbaik minggu ini",
+      "achievements": "Game untuk ditamatkan",
+      "surprise_me": "Kejutkan saya",
+      "no_results": "Tidak ada hasil",
+      "start_typing": "Mulai mengetik untuk mencari..."
+    },
+    "game_card": {
+      "available": "tersedia"
+    },
+    "catalogue": {
+      "title": "Katalog",
+      "search_placeholder": "Cari game...",
+      "result_count": "{{resultCount}} hasil",
+      "no_results": "Tidak ada game ditemukan",
+      "loading": "Memuat game...",
+      "genres": "Genre",
+      "tags": "Tag",
+      "download_sources": "Sumber unduhan",
+      "developers": "Pengembang",
+      "publishers": "Penerbit",
+      "clear_filters": "Hapus ({{filterCount}})",
+      "filter_count": "{{filterCount}} tersedia",
+      "search": "Cari"
+    },
+    "game_details": {
+      "download": "Unduh",
+      "add_to_library": "Tambahkan ke perpustakaan",
+      "options": "Opsi",
+      "stats": "Statistik",
+      "download_count": "Jumlah unduhan",
+      "player_count": "Jumlah pemain",
+      "requirements": "Spesifikasi sistem",
+      "minimum": "Minimum",
+      "recommended": "Rekomendasi",
+      "information": "Informasi",
+      "updated_at": "Diperbarui: {{updated_at}}",
+      "download_options": "{{count}} opsi unduhan tersedia",
+      "download_options_plural": "{{count}} opsi unduhan tersedia",
+      "release_date": "Dirilis pada {{date}}",
+      "publisher": "Diterbitkan oleh {{publisher}}",
+      "video": "Video {{number}}",
+      "screenshot": "Tangkapan layar {{number}}",
+      "previous_screenshot": "Sebelumnya",
+      "next_screenshot": "Berikutnya",
+      "open_screenshot": "Buka tangkapan layar {{number}}",
+      "cloud_save": "Simpan di cloud"
+    },
+  "settings": {
+    "general": "Umum",
+    "download_sources": "Sumber unduhan",
+    "account": "Akun",
+    "downloads_path": "Lokasi unduhan",
+    "steam_path": "Lokasi instalasi Steam",
+    "language": "Bahasa",
+    "change": "Ubah",
+    "not_set": "Belum diatur",
+    "auto_detected": "Terdeteksi otomatis",
+    "steam_path_custom": "Menggunakan lokasi Steam kustom",
+    "steam_path_auto": "Lokasi Steam terdeteksi otomatis dari Registry Windows",
+    "loading": "Memuat pengaturan..."
+  },
+  "game_options": {
+    "title": "Opsi",
+    "executable": "Executable",
+    "executable_description": "Path file yang akan dijalankan ketika \"Play\" diklik",
+    "no_executable": "Belum ada executable dipilih",
+    "select": "Pilih",
+    "danger_zone": "Zona berbahaya",
+    "danger_zone_description": "Hapus game ini dari perpustakaan Anda atau file yang diunduh oleh Chaos",
+    "remove_from_library": "Hapus dari perpustakaan",
+    "remove_game_confirmation": "Apakah Anda yakin ingin menghapus {{game_name}} dari perpustakaan?",
+    "remove": "Hapus",
+    "cancel": "Batal"
+  }
+}
+  

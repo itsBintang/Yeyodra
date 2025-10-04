@@ -55,6 +55,24 @@ export function Header() {
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      const value = (event.target as HTMLInputElement).value.trim();
+      
+      // Check if input is pure number (appid)
+      const isAppId = /^\d+$/.test(value);
+      
+      if (isAppId && value.length > 0) {
+        // Navigate to game details page with steam shop and appid
+        navigate(`/game/steam/${value}`);
+        // Clear search
+        dispatch(setFilters({ title: "" }));
+        // Blur input
+        inputRef.current?.blur();
+      }
+    }
+  };
+
   const handleFocus = () => {
     setIsFocused(true);
   };
@@ -111,6 +129,7 @@ export function Header() {
             value={searchValue}
             className="header__search-input"
             onChange={(event) => handleSearch(event.target.value)}
+            onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             onBlur={handleBlur}
           />

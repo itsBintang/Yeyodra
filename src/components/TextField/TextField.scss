@@ -53,7 +53,7 @@
     height: 100%;
 
     &::placeholder {
-      color: globals.$muted-color;
+      color: rgba(255, 255, 255, 0.3);
     }
 
     &:disabled {

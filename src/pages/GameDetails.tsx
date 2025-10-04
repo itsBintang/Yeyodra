@@ -4,12 +4,13 @@ import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
+import { GameOptionsModal } from "@/components/GameOptionsModal/GameOptionsModal";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
 
 function GameDetailsContent() {
-  const { shopDetails, stats, isLoading } = useGameDetails();
+  const { shopDetails, stats, isLoading, game, showGameOptionsModal, setShowGameOptionsModal, updateGame } = useGameDetails();
 
   const handleCloudSaveClick = () => {
     // TODO: Implement cloud save modal
@@ -89,71 +90,83 @@ function GameDetailsContent() {
   const logoImage = stats?.assets?.logoImageUrl || shopDetails.capsule_image || "";
 
   return (
-    <div className="game-details__wrapper">
-      <section className="game-details__container">
-        {/* Hero Section - Direct inline like Hydra */}
-        <div className="game-details__hero">
-          <img
-            src={heroImage}
-            className="game-details__hero-image"
-            alt={shopDetails.name}
-          />
-          <div className="game-details__hero-backdrop" style={{ flex: 1 }} />
+    <>
+      <div className="game-details__wrapper">
+        <section className="game-details__container">
+          {/* Hero Section - Direct inline like Hydra */}
+          <div className="game-details__hero">
+            <img
+              src={heroImage}
+              className="game-details__hero-image"
+              alt={shopDetails.name}
+            />
+            <div className="game-details__hero-backdrop" style={{ flex: 1 }} />
 
-          <div className="game-details__hero-logo-backdrop">
-            <div className="game-details__hero-content">
-              {logoImage ? (
-                <img
-                  src={logoImage}
-                  className="game-details__game-logo"
-                  alt={shopDetails.name}
-                />
-              ) : (
-                <h1 className="game-details__game-logo-text">{shopDetails.name}</h1>
-              )}
+            <div className="game-details__hero-logo-backdrop">
+              <div className="game-details__hero-content">
+                {logoImage ? (
+                  <img
+                    src={logoImage}
+                    className="game-details__game-logo"
+                    alt={shopDetails.name}
+                  />
+                ) : (
+                  <h1 className="game-details__game-logo-text">{shopDetails.name}</h1>
+                )}
 
-              <div className="game-details__hero-buttons game-details__hero-buttons--right">
-                <button
-                  type="button"
-                  className="game-details__cloud-sync-button"
-                  onClick={handleCloudSaveClick}
-                >
-                  <div className="game-details__cloud-icon-container">
-                    <img
-                      src={cloudIconAnimated}
-                      alt="Cloud icon"
-                      className="game-details__cloud-icon"
-                    />
-                  </div>
-                  Cloud save
-                </button>
+                <div className="game-details__hero-buttons game-details__hero-buttons--right">
+                  <button
+                    type="button"
+                    className="game-details__cloud-sync-button"
+                    onClick={handleCloudSaveClick}
+                  >
+                    <div className="game-details__cloud-icon-container">
+                      <img
+                        src={cloudIconAnimated}
+                        alt="Cloud icon"
+                        className="game-details__cloud-icon"
+                      />
+                    </div>
+                    Cloud save
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Hero Panel (glassmorphism bar) */}
-        <HeroPanel />
+          {/* Hero Panel (glassmorphism bar) */}
+          <HeroPanel />
 
-        {/* Description Container */}
-        <div className="game-details__description-container">
-          <div className="game-details__description-content">
-            <DescriptionHeader shopDetails={shopDetails} />
-            <GallerySlider shopDetails={shopDetails} />
+          {/* Description Container */}
+          <div className="game-details__description-container">
+            <div className="game-details__description-content">
+              <DescriptionHeader shopDetails={shopDetails} />
+              <GallerySlider shopDetails={shopDetails} />
+              
+              {/* About This Game - Direct HTML rendering like Hydra */}
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: shopDetails.detailed_description,
+                }}
+                className="game-details__description"
+              />
+            </div>
             
-            {/* About This Game - Direct HTML rendering like Hydra */}
-            <div
-              dangerouslySetInnerHTML={{
-                __html: shopDetails.detailed_description,
-              }}
-              className="game-details__description"
-            />
+            <GameDetailsSidebar shopDetails={shopDetails} stats={stats} />
           </div>
-          
-          <GameDetailsSidebar shopDetails={shopDetails} stats={stats} />
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+
+      {/* Game Options Modal */}
+      {game && (
+        <GameOptionsModal
+          visible={showGameOptionsModal}
+          game={game}
+          onClose={() => setShowGameOptionsModal(false)}
+          onGameUpdate={updateGame}
+        />
+      )}
+    </>
   );
 }
 

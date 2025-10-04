@@ -3,8 +3,6 @@ import {
   GearIcon,
   HeartFillIcon,
   HeartIcon,
-  PinIcon,
-  PinSlashIcon,
   PlayIcon,
   PlusCircleIcon,
 } from "@primer/octicons-react";
@@ -19,7 +17,7 @@ import { useState } from "react";
 
 export function HeroPanelActions() {
   const { t } = useTranslation("game_details");
-  const { game, repacks, shopDetails, updateGame } = useGameDetails();
+  const { game, repacks, shopDetails, updateGame, setShowGameOptionsModal } = useGameDetails();
   const { updateLibrary } = useLibrary();
   const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
   
@@ -65,14 +63,8 @@ export function HeroPanelActions() {
     console.log("Favorite clicked");
   };
 
-  const handlePinClick = () => {
-    // TODO: Implement pin toggle
-    console.log("Pin clicked");
-  };
-
   const handleOptionsClick = () => {
-    // TODO: Implement options modal
-    console.log("Options clicked");
+    setShowGameOptionsModal(true);
   };
 
   // Render different UI based on whether game is in library
@@ -113,15 +105,6 @@ export function HeroPanelActions() {
         className="hero-panel-actions__action"
       >
         {game.favorite ? <HeartFillIcon /> : <HeartIcon />}
-      </Button>
-
-      <Button
-        onClick={handlePinClick}
-        theme="outline"
-        disabled={toggleLibraryGameDisabled}
-        className="hero-panel-actions__action"
-      >
-        {game.isPinned ? <PinSlashIcon /> : <PinIcon />}
       </Button>
 
       <Button

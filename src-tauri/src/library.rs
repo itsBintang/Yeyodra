@@ -26,6 +26,10 @@ pub struct LibraryGame {
     pub favorite: bool,
     #[serde(rename = "isPinned", alias = "is_pinned")]
     pub is_pinned: bool,
+    #[serde(rename = "executablePath", alias = "executable_path")]
+    pub executable_path: Option<String>,
+    #[serde(rename = "launchOptions", alias = "launch_options")]
+    pub launch_options: Option<String>,
 }
 
 fn get_library_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
@@ -107,6 +111,8 @@ pub fn add_game_to_library(
             is_deleted: false,
             favorite: false,
             is_pinned: false,
+            executable_path: None,
+            launch_options: None,
         }
     };
     
@@ -170,6 +176,35 @@ pub fn get_all_library_games(app_handle: &AppHandle) -> Result<Vec<LibraryGame>,
     }
     
     Ok(games)
+}
+
+pub fn update_game_executable_path(
+    app_handle: &AppHandle,
+    shop: &str,
+    object_id: &str,
+    executable_path: Option<String>,
+) -> Result<LibraryGame, String> {
+    let game_path = get_game_file_path(app_handle, shop, object_id)?;
+    
+    if !game_path.exists() {
+        return Err("Game not found in library".to_string());
+    }
+    
+    let contents = fs::read_to_string(&game_path)
+        .map_err(|e| format!("Failed to read game file: {}", e))?;
+    
+    let mut game: LibraryGame = serde_json::from_str(&contents)
+        .map_err(|e| format!("Failed to parse game data: {}", e))?;
+    
+    game.executable_path = executable_path;
+    
+    let json = serde_json::to_string_pretty(&game)
+        .map_err(|e| format!("Failed to serialize game: {}", e))?;
+    
+    fs::write(&game_path, json)
+        .map_err(|e| format!("Failed to write game file: {}", e))?;
+    
+    Ok(game)
 }
 
 pub fn remove_game_from_library(
