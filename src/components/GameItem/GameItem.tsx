@@ -12,7 +12,7 @@ export function GameItem({ game }: GameItemProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/game/${game.objectId}?shop=${game.shop}`);
+    navigate(`/game/${game.shop}/${game.objectId}`);
   };
 
   const libraryImage = useMemo(() => {

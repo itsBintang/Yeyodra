@@ -1,11 +1,11 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { GameDetailsProvider, useGameDetails } from "@/contexts/game-details";
 import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
-import Skeleton from "react-loading-skeleton";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
 
 function GameDetailsContent() {
@@ -18,24 +18,60 @@ function GameDetailsContent() {
 
   if (isLoading) {
     return (
-      <div className="game-details">
-        {/* Hero Skeleton */}
-        <div className="game-details__hero-skeleton">
-          <Skeleton height={400} baseColor="#1a1a1a" highlightColor="#2a2a2a" />
-        </div>
+      <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+        <div className="game-details__wrapper">
+          <div className="game-details__container">
+            {/* Hero Skeleton */}
+            <div className="game-details__hero">
+              <Skeleton className="game-details__hero-image-skeleton" />
+            </div>
 
-        {/* Content Skeleton */}
-        <div className="game-details__content-skeleton">
-          <div className="game-details__main-skeleton">
-            <Skeleton height={30} width="60%" style={{ marginBottom: "1rem" }} />
-            <Skeleton count={5} style={{ marginBottom: "0.5rem" }} />
-          </div>
-          <div className="game-details__sidebar-skeleton">
-            <Skeleton height={200} style={{ marginBottom: "1rem" }} />
-            <Skeleton height={100} />
+            {/* Hero Panel Skeleton */}
+            <div className="game-details__hero-panel-skeleton">
+              <div className="hero-panel__content">
+                <Skeleton width={155} height={16} />
+                <Skeleton width={135} height={16} />
+              </div>
+            </div>
+
+            {/* Description Container Skeleton */}
+            <div className="game-details__description-container">
+              <div className="game-details__description-content">
+                {/* Description Header Skeleton */}
+                <div className="description-header">
+                  <section className="description-header__info">
+                    <Skeleton width={145} height={16} />
+                    <Skeleton width={150} height={16} />
+                  </section>
+                </div>
+
+                {/* Description Body Skeleton */}
+                <div className="game-details__description-skeleton">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <Skeleton key={`desc-${index}`} height={16} style={{ marginBottom: "8px" }} />
+                  ))}
+                  <Skeleton height={200} style={{ marginTop: "16px", marginBottom: "16px" }} />
+                  {Array.from({ length: 2 }).map((_, index) => (
+                    <Skeleton key={`desc2-${index}`} height={16} style={{ marginBottom: "8px" }} />
+                  ))}
+                  <Skeleton height={200} style={{ marginTop: "16px", marginBottom: "16px" }} />
+                  <Skeleton height={16} />
+                </div>
+              </div>
+
+              {/* Sidebar Skeleton */}
+              <div className="game-details-sidebar">
+                <div className="game-details-sidebar__section">
+                  <Skeleton height={20} width="50%" style={{ marginBottom: "16px" }} />
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Skeleton key={`sidebar-${index}`} height={20} style={{ marginBottom: "8px" }} />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </SkeletonTheme>
     );
   }
 
@@ -48,9 +84,9 @@ function GameDetailsContent() {
     );
   }
 
-  // Hydra uses libraryHeroImageUrl from assets, fallback to header_image
-  const heroImage = shopDetails.header_image || "";
-  const logoImage = shopDetails.capsule_image || "";
+  // Use HD assets from Hydra API (stats.assets), fallback to Steam API
+  const heroImage = stats?.assets?.libraryHeroImageUrl || shopDetails.header_image || "";
+  const logoImage = stats?.assets?.logoImageUrl || shopDetails.capsule_image || "";
 
   return (
     <div className="game-details__wrapper">
@@ -122,15 +158,13 @@ function GameDetailsContent() {
 }
 
 export function GameDetails() {
-  const { objectId } = useParams<{ objectId: string }>();
-  const [searchParams] = useSearchParams();
-  const shop = searchParams.get("shop") || "steam";
+  const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
 
-  if (!objectId) {
+  if (!objectId || !shop) {
     return (
       <div className="game-details-error">
         <h1>Game not found</h1>
-        <p>Invalid game ID</p>
+        <p>Invalid game ID or shop</p>
       </div>
     );
   }

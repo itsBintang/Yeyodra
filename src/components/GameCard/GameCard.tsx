@@ -48,7 +48,7 @@ export function GameCard({ game, ...props }: GameCardProps) {
 
   const handleClick = useCallback(() => {
     if (game.objectId && game.shop) {
-      navigate(`/game/${game.objectId}?shop=${game.shop}`);
+      navigate(`/game/${game.shop}/${game.objectId}`);
     }
   }, [game, navigate]);
 

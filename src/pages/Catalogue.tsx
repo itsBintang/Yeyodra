@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
@@ -41,7 +41,6 @@ export function Catalogue() {
   const [isLoading, setIsLoading] = useState(true);
   const [results, setResults] = useState<CatalogueSearchResult[]>([]);
   const [itemsCount, setItemsCount] = useState(0);
-  const [searchInput, setSearchInput] = useState("");
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const cataloguePageRef = useRef<HTMLDivElement>(null);
@@ -82,13 +81,6 @@ export function Catalogue() {
     }, 500)
   ).current;
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setSearchInput(value);
-      dispatch(setFilters({ title: value }));
-    },
-    [dispatch]
-  );
 
   useEffect(() => {
     setResults([]);
@@ -230,18 +222,6 @@ export function Catalogue() {
 
   return (
     <div className="catalogue" ref={cataloguePageRef}>
-      <div className="catalogue__header">
-        <h1 className="catalogue__title">{t("title")}</h1>
-        
-        <input
-          type="text"
-          className="catalogue__search"
-          placeholder={t("search_placeholder")}
-          value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </div>
-
       {/* Active Filters Chips */}
       {groupedFilters.length > 0 && (
         <div className="catalogue__filters-wrapper">

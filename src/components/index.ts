@@ -11,6 +11,7 @@ export { FilterSection } from "./FilterSection/FilterSection";
 export { TextField } from "./TextField/TextField";
 export { CheckboxField } from "./CheckboxField/CheckboxField";
 export { HeroPanel } from "./HeroPanel/HeroPanel";
+export { HeroPanelActions } from "./HeroPanel/HeroPanelActions";
 export { DescriptionHeader } from "./DescriptionHeader/DescriptionHeader";
 export { GallerySlider } from "./GallerySlider/GallerySlider";
 export { SidebarSection } from "./SidebarSection/SidebarSection";

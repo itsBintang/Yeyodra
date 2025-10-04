@@ -17,7 +17,7 @@ export enum CatalogueCategory {
   Achievements = "achievements",
 }
 
-export interface ShopAssets {
+export interface CatalogueGame {
   object_id: string;
   shop: string;
   title: string;
@@ -43,9 +43,22 @@ export interface TrendingGame {
   description?: string;
 }
 
+export interface ShopAssets {
+  objectId: string;
+  shop: string;
+  title: string;
+  iconUrl?: string | null;
+  libraryHeroImageUrl?: string | null;
+  libraryImageUrl?: string | null;
+  logoImageUrl?: string | null;
+  logoPosition?: string | null;
+  coverImageUrl?: string | null;
+}
+
 export interface GameStats {
   download_count: number;
   player_count: number;
+  assets?: ShopAssets | null;
 }
 
 export interface CatalogueSearchPayload {
@@ -163,25 +176,20 @@ export interface Download {
 }
 
 // Library Game (Game in user's library)
-export interface Game {
+export interface LibraryGame {
+  id: string;
   title: string;
+  objectId: string;
+  shop: string;
   iconUrl: string | null;
   libraryHeroImageUrl: string | null;
   logoImageUrl: string | null;
-  shop: string;
-  objectId: string;
   playTimeInSeconds: number;
-  lastTimePlayed: Date | null;
-  customIconUrl?: string | null;
-  customHeroImageUrl?: string | null;
-  customLogoImageUrl?: string | null;
+  lastTimePlayed: string | null;
+  isDeleted: boolean;
+  favorite: boolean;
+  isPinned: boolean;
 }
-
-export type LibraryGame = Game &
-  Partial<ShopAssets> & {
-    id: string;
-    download: Download | null;
-  };
 
 // Game Repack
 export interface GameRepack {

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { Button, GameCard, Hero } from "../components";
-import type { ShopAssets, Steam250Game } from "../types";
+import type { CatalogueGame, Steam250Game } from "../types";
 import { CatalogueCategory } from "../types";
 import flameIconStatic from "../assets/icons/flame-static.png";
 import flameIconAnimated from "../assets/icons/flame-animated.gif";
@@ -26,7 +26,7 @@ export function Home() {
   );
 
   const [catalogue, setCatalogue] = useState<
-    Record<CatalogueCategory, ShopAssets[]>
+    Record<CatalogueCategory, CatalogueGame[]>
   >({
     [CatalogueCategory.Hot]: [],
     [CatalogueCategory.Weekly]: [],
@@ -38,7 +38,7 @@ export function Home() {
       setCurrentCatalogueCategory(category);
       setIsLoading(true);
 
-      const catalogue = await invoke<ShopAssets[]>("get_catalogue", { category });
+      const catalogue = await invoke<CatalogueGame[]>("get_catalogue", { category });
       setCatalogue((prev) => ({ ...prev, [category]: catalogue }));
     } catch (error) {
       console.error("Failed to fetch catalogue:", error);
@@ -60,7 +60,7 @@ export function Home() {
 
   const handleRandomizerClick = () => {
     if (randomGame) {
-      navigate(`/game/${randomGame.objectId}`);
+      navigate(`/game/steam/${randomGame.objectId}`);
     }
   };
 
@@ -211,7 +211,7 @@ export function Home() {
                 <GameCard
                   key={result.objectId}
                   game={result}
-                  onClick={() => navigate(`/game/${result.objectId}`)}
+                  onClick={() => navigate(`/game/${result.shop}/${result.objectId}`)}
                 />
               ))}
         </section>

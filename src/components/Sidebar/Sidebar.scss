@@ -95,7 +95,21 @@
     min-width: 20px;
     min-height: 20px;
     border-radius: 4px;
-    background-size: cover;
+    object-fit: cover;
+  }
+
+  &__game-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__empty-text {
+    color: globals.$muted-color;
+    opacity: 0.6;
+    font-size: globals.$body-font-size;
+    padding: globals.$spacing-unit;
+    text-align: center;
   }
 
   &__section-header {

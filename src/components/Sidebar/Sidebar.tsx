@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { routes } from "./routes";
 import { SidebarProfile } from "./SidebarProfile";
+import { useLibrary } from "@/hooks";
+import type { LibraryGame } from "@/types";
 import "./Sidebar.scss";
 
 const SIDEBAR_MIN_WIDTH = 200;
@@ -16,6 +18,7 @@ export function Sidebar() {
   const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
   const location = useLocation();
+  const { library, updateLibrary } = useLibrary();
 
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(
@@ -25,6 +28,16 @@ export function Sidebar() {
   const sidebarRef = useRef<HTMLElement>(null);
   const cursorPos = useRef({ x: 0 });
   const sidebarInitialWidth = useRef(0);
+
+  // Sort library alphabetically
+  const sortedLibrary = useMemo(() => {
+    return [...library].sort((a, b) => a.title.localeCompare(b.title));
+  }, [library]);
+
+  // Load library on mount
+  useEffect(() => {
+    updateLibrary();
+  }, [updateLibrary]);
 
   const handleMouseDown: React.MouseEventHandler<HTMLButtonElement> = (
     event
@@ -63,6 +76,13 @@ export function Sidebar() {
   }, [isResizing]);
 
   const handleSidebarItemClick = (path: string) => {
+    if (path !== location.pathname) {
+      navigate(path);
+    }
+  };
+
+  const handleGameClick = (game: LibraryGame) => {
+    const path = `/game/${game.shop}/${game.objectId}`;
     if (path !== location.pathname) {
       navigate(path);
     }
@@ -109,7 +129,37 @@ export function Sidebar() {
           <section className="sidebar__section">
             <small className="sidebar__section-title">{t("my_library")}</small>
             <ul className="sidebar__menu">
-              {/* Library games will go here */}
+              {sortedLibrary.map((game) => (
+                <li
+                  key={game.id}
+                  className={classNames("sidebar__menu-item", {
+                    "sidebar__menu-item--active": 
+                      location.pathname === `/game/${game.shop}/${game.objectId}`,
+                  })}
+                >
+                  <button
+                    type="button"
+                    className="sidebar__menu-item-button"
+                    onClick={() => handleGameClick(game)}
+                  >
+                    {game.iconUrl && (
+                      <img 
+                        src={game.iconUrl} 
+                        alt={game.title}
+                        className="sidebar__game-icon"
+                      />
+                    )}
+                    <span className="sidebar__game-title">{game.title}</span>
+                  </button>
+                </li>
+              ))}
+              {sortedLibrary.length === 0 && (
+                <li className="sidebar__menu-item sidebar__menu-item--empty">
+                  <span className="sidebar__empty-text">
+                    {t("no_games_in_library")}
+                  </span>
+                </li>
+              )}
             </ul>
           </section>
         </div>

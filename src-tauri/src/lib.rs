@@ -1,7 +1,9 @@
 mod api;
+mod library;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details};
-use api::{ShopAssets, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
+use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
+use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, get_shop_assets};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -10,7 +12,7 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn get_catalogue(category: String) -> Result<Vec<ShopAssets>, String> {
+async fn get_catalogue(category: String) -> Result<Vec<CatalogueGame>, String> {
     fetch_catalogue(&category).await
 }
 
@@ -53,6 +55,49 @@ async fn get_game_shop_details(object_id: String, language: String) -> Result<St
     fetch_steam_app_details(&object_id, &language).await
 }
 
+#[tauri::command]
+fn add_game_to_library(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+    title: String,
+) -> Result<LibraryGame, String> {
+    add_to_lib(&app_handle, shop, object_id, title)
+}
+
+#[tauri::command]
+fn get_library_game(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+) -> Result<Option<LibraryGame>, String> {
+    get_game_from_library(&app_handle, &shop, &object_id)
+}
+
+#[tauri::command]
+fn get_library_games(app_handle: tauri::AppHandle) -> Result<Vec<LibraryGame>, String> {
+    get_all_library_games(&app_handle)
+}
+
+#[tauri::command]
+fn remove_library_game(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+) -> Result<(), String> {
+    remove_game_from_library(&app_handle, &shop, &object_id)
+}
+
+#[tauri::command]
+fn save_game_shop_assets(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+    assets: api::ShopAssets,
+) -> Result<(), String> {
+    save_shop_assets(&app_handle, shop, object_id, assets)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -66,7 +111,12 @@ pub fn run() {
             search_catalogue,
             get_developers,
             get_publishers,
-            get_game_shop_details
+            get_game_shop_details,
+            add_game_to_library,
+            get_library_game,
+            get_library_games,
+            remove_library_game,
+            save_game_shop_assets
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

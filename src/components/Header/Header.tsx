@@ -3,6 +3,8 @@ import { useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeftIcon, SearchIcon, XIcon } from "@primer/octicons-react";
 import classNames from "classnames";
+import { useAppSelector, useAppDispatch } from "@/hooks";
+import { setFilters } from "@/features/catalogueSlice";
 import "./Header.scss";
 
 const pathTitle: Record<string, string> = {
@@ -16,18 +18,21 @@ export function Header() {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const { t } = useTranslation("header");
 
+  const headerTitle = useAppSelector((state) => state.app.headerTitle);
+  const searchValue = useAppSelector((state) => state.catalogue.filters.title);
+
   const [isFocused, setIsFocused] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
 
   const title = useMemo(() => {
-    if (location.pathname.startsWith("/game")) return "Game Details";
-    if (location.pathname.startsWith("/profile")) return "Profile";
+    if (location.pathname.startsWith("/game")) return headerTitle || "Game Details";
+    if (location.pathname.startsWith("/profile")) return headerTitle || "Profile";
     if (location.pathname.startsWith("/search")) return t("search_results");
 
     return t(pathTitle[location.pathname]);
-  }, [location.pathname, t]);
+  }, [location.pathname, headerTitle, t]);
 
   const focusInput = () => {
     setIsFocused(true);
@@ -43,12 +48,23 @@ export function Header() {
   };
 
   const handleSearch = (value: string) => {
-    setSearchValue(value);
+    dispatch(setFilters({ title: value }));
 
-    if (!location.pathname.startsWith("/catalogue")) {
+    if (value && !location.pathname.startsWith("/catalogue")) {
       navigate("/catalogue");
     }
   };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  // Clear search when leaving catalogue page
+  // useEffect(() => {
+  //   if (!location.pathname.startsWith("/catalogue") && searchValue) {
+  //     dispatch(setFilters({ title: "" }));
+  //   }
+  // }, [location.pathname, searchValue, dispatch]);
 
   return (
     <header className={classNames("header", "header--is-windows")}>
@@ -95,14 +111,14 @@ export function Header() {
             value={searchValue}
             className="header__search-input"
             onChange={(event) => handleSearch(event.target.value)}
-            onFocus={() => setIsFocused(true)}
+            onFocus={handleFocus}
             onBlur={handleBlur}
           />
 
           {searchValue && (
             <button
               type="button"
-              onClick={() => setSearchValue("")}
+              onClick={() => dispatch(setFilters({ title: "" }))}
               className="header__action-button"
             >
               <XIcon />

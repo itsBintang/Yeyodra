@@ -1,0 +1,231 @@
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::PathBuf;
+use tauri::{AppHandle, Manager};
+use crate::api::ShopAssets;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LibraryGame {
+    pub id: String,
+    pub title: String,
+    pub object_id: String,
+    pub shop: String,
+    pub icon_url: Option<String>,
+    pub library_hero_image_url: Option<String>,
+    pub logo_image_url: Option<String>,
+    pub play_time_in_seconds: i64,
+    pub last_time_played: Option<String>,
+    pub is_deleted: bool,
+    pub favorite: bool,
+    #[serde(rename = "isPinned")]
+    pub is_pinned: bool,
+}
+
+fn get_library_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let library_dir = app_data_dir.join("library");
+    
+    // Create directory if it doesn't exist
+    fs::create_dir_all(&library_dir)
+        .map_err(|e| format!("Failed to create library directory: {}", e))?;
+    
+    Ok(library_dir)
+}
+
+fn get_assets_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let assets_dir = app_data_dir.join("shop_assets");
+    
+    // Create directory if it doesn't exist
+    fs::create_dir_all(&assets_dir)
+        .map_err(|e| format!("Failed to create assets directory: {}", e))?;
+    
+    Ok(assets_dir)
+}
+
+fn get_asset_file_path(app_handle: &AppHandle, shop: &str, object_id: &str) -> Result<PathBuf, String> {
+    let assets_dir = get_assets_path(app_handle)?;
+    let asset_id = format!("{}_{}", shop, object_id);
+    Ok(assets_dir.join(format!("{}.json", asset_id)))
+}
+
+fn get_game_file_path(app_handle: &AppHandle, shop: &str, object_id: &str) -> Result<PathBuf, String> {
+    let library_dir = get_library_path(app_handle)?;
+    let game_id = format!("{}_{}", shop, object_id);
+    Ok(library_dir.join(format!("{}.json", game_id)))
+}
+
+pub fn add_game_to_library(
+    app_handle: &AppHandle,
+    shop: String,
+    object_id: String,
+    title: String,
+) -> Result<LibraryGame, String> {
+    let game_path = get_game_file_path(app_handle, &shop, &object_id)?;
+    
+    // Get shop assets if available
+    let game_assets = get_shop_assets(app_handle, &shop, &object_id).unwrap_or(None);
+    
+    // Check if game already exists
+    let game = if game_path.exists() {
+        let contents = fs::read_to_string(&game_path)
+            .map_err(|e| format!("Failed to read game file: {}", e))?;
+        let mut existing_game: LibraryGame = serde_json::from_str(&contents)
+            .map_err(|e| format!("Failed to parse game data: {}", e))?;
+        
+        // Restore if was deleted
+        existing_game.is_deleted = false;
+        existing_game
+    } else {
+        // Create new game entry with assets from shop
+        let game_id = format!("{}_{}", shop, object_id);
+        LibraryGame {
+            id: game_id,
+            title,
+            object_id,
+            shop,
+            icon_url: game_assets.as_ref().and_then(|a| a.icon_url.clone()),
+            library_hero_image_url: game_assets.as_ref().and_then(|a| a.library_hero_image_url.clone()),
+            logo_image_url: game_assets.as_ref().and_then(|a| a.logo_image_url.clone()),
+            play_time_in_seconds: 0,
+            last_time_played: None,
+            is_deleted: false,
+            favorite: false,
+            is_pinned: false,
+        }
+    };
+    
+    // Save game to file
+    let json = serde_json::to_string_pretty(&game)
+        .map_err(|e| format!("Failed to serialize game: {}", e))?;
+    
+    fs::write(&game_path, json)
+        .map_err(|e| format!("Failed to write game file: {}", e))?;
+    
+    Ok(game)
+}
+
+pub fn get_game_from_library(
+    app_handle: &AppHandle,
+    shop: &str,
+    object_id: &str,
+) -> Result<Option<LibraryGame>, String> {
+    let game_path = get_game_file_path(app_handle, shop, object_id)?;
+    
+    if !game_path.exists() {
+        return Ok(None);
+    }
+    
+    let contents = fs::read_to_string(&game_path)
+        .map_err(|e| format!("Failed to read game file: {}", e))?;
+    
+    let game: LibraryGame = serde_json::from_str(&contents)
+        .map_err(|e| format!("Failed to parse game data: {}", e))?;
+    
+    // Return None if game is deleted
+    if game.is_deleted {
+        return Ok(None);
+    }
+    
+    Ok(Some(game))
+}
+
+pub fn get_all_library_games(app_handle: &AppHandle) -> Result<Vec<LibraryGame>, String> {
+    let library_dir = get_library_path(app_handle)?;
+    
+    let mut games = Vec::new();
+    
+    let entries = fs::read_dir(&library_dir)
+        .map_err(|e| format!("Failed to read library directory: {}", e))?;
+    
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        
+        if path.extension().and_then(|s| s.to_str()) == Some("json") {
+            let contents = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read game file: {}", e))?;
+            
+            if let Ok(game) = serde_json::from_str::<LibraryGame>(&contents) {
+                if !game.is_deleted {
+                    games.push(game);
+                }
+            }
+        }
+    }
+    
+    Ok(games)
+}
+
+pub fn remove_game_from_library(
+    app_handle: &AppHandle,
+    shop: &str,
+    object_id: &str,
+) -> Result<(), String> {
+    let game_path = get_game_file_path(app_handle, shop, object_id)?;
+    
+    if game_path.exists() {
+        let contents = fs::read_to_string(&game_path)
+            .map_err(|e| format!("Failed to read game file: {}", e))?;
+        
+        let mut game: LibraryGame = serde_json::from_str(&contents)
+            .map_err(|e| format!("Failed to parse game data: {}", e))?;
+        
+        // Mark as deleted instead of actually deleting
+        game.is_deleted = true;
+        
+        let json = serde_json::to_string_pretty(&game)
+            .map_err(|e| format!("Failed to serialize game: {}", e))?;
+        
+        fs::write(&game_path, json)
+            .map_err(|e| format!("Failed to write game file: {}", e))?;
+    }
+    
+    Ok(())
+}
+
+pub fn save_shop_assets(
+    app_handle: &AppHandle,
+    shop: String,
+    object_id: String,
+    assets: ShopAssets,
+) -> Result<(), String> {
+    let asset_path = get_asset_file_path(app_handle, &shop, &object_id)?;
+    
+    let json = serde_json::to_string_pretty(&assets)
+        .map_err(|e| format!("Failed to serialize assets: {}", e))?;
+    
+    fs::write(&asset_path, json)
+        .map_err(|e| format!("Failed to write assets file: {}", e))?;
+    
+    Ok(())
+}
+
+pub fn get_shop_assets(
+    app_handle: &AppHandle,
+    shop: &str,
+    object_id: &str,
+) -> Result<Option<ShopAssets>, String> {
+    let asset_path = get_asset_file_path(app_handle, shop, object_id)?;
+    
+    if !asset_path.exists() {
+        return Ok(None);
+    }
+    
+    let contents = fs::read_to_string(&asset_path)
+        .map_err(|e| format!("Failed to read assets file: {}", e))?;
+    
+    let assets: ShopAssets = serde_json::from_str(&contents)
+        .map_err(|e| format!("Failed to parse assets data: {}", e))?;
+    
+    Ok(Some(assets))
+}
+

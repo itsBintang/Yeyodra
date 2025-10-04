@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useGameDetails } from "@/contexts/game-details";
-import { Button } from "../Button";
+import { HeroPanelActions } from "./HeroPanelActions";
 import "./HeroPanel.scss";
 
 export function HeroPanel() {
@@ -29,18 +29,11 @@ export function HeroPanel() {
     return <p>{t("no_downloads")}</p>;
   };
 
-  const handleDownloadClick = () => {
-    // TODO: Implement download modal
-    console.log("Download clicked");
-  };
-
   return (
     <div className="hero-panel">
       <div className="hero-panel__content">{getInfo()}</div>
       <div className="hero-panel__actions">
-        <Button theme="primary" onClick={handleDownloadClick}>
-          {t("download")}
-        </Button>
+        <HeroPanelActions />
       </div>
     </div>
   );

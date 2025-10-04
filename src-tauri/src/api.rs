@@ -6,7 +6,7 @@ use rand::seq::SliceRandom;
 use chrono::Datelike;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ShopAssets {
+pub struct CatalogueGame {
     #[serde(rename = "objectId")]
     pub object_id: String,
     pub shop: String,
@@ -34,12 +34,34 @@ pub struct Steam250Game {
     pub title: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShopAssets {
+    #[serde(rename = "objectId")]
+    pub object_id: String,
+    pub shop: String,
+    pub title: String,
+    #[serde(rename = "iconUrl")]
+    pub icon_url: Option<String>,
+    #[serde(rename = "libraryHeroImageUrl")]
+    pub library_hero_image_url: Option<String>,
+    #[serde(rename = "libraryImageUrl")]
+    pub library_image_url: Option<String>,
+    #[serde(rename = "logoImageUrl")]
+    pub logo_image_url: Option<String>,
+    #[serde(rename = "logoPosition")]
+    pub logo_position: Option<String>,
+    #[serde(rename = "coverImageUrl")]
+    pub cover_image_url: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GameStats {
     #[serde(rename = "downloadCount")]
     pub download_count: i64,
     #[serde(rename = "playerCount")]
     pub player_count: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assets: Option<ShopAssets>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -82,7 +104,7 @@ struct RandomGameState {
     index: usize,
 }
 
-pub async fn fetch_catalogue(category: &str) -> Result<Vec<ShopAssets>, String> {
+pub async fn fetch_catalogue(category: &str) -> Result<Vec<CatalogueGame>, String> {
     let url = format!("{}/catalogue/{}?take=12&skip=0", API_URL, category);
     
     let client = reqwest::Client::new();
@@ -98,7 +120,7 @@ pub async fn fetch_catalogue(category: &str) -> Result<Vec<ShopAssets>, String> 
     }
 
     let games = response
-        .json::<Vec<ShopAssets>>()
+        .json::<Vec<CatalogueGame>>()
         .await
         .map_err(|e| format!("Failed to parse response: {}", e))?;
 
@@ -373,48 +395,44 @@ pub async fn fetch_publishers() -> Result<Vec<String>, String> {
     Ok(publishers)
 }
 
-// Game Details Types
+// Game Details Types - Minimal like Hydra
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SteamAppDetails {
-    #[serde(rename = "type")]
-    pub app_type: String,
     pub name: String,
     #[serde(rename = "steam_appid")]
     pub steam_app_id: u32,
-    #[serde(rename = "is_free")]
-    pub is_free: bool,
     pub detailed_description: String,
     pub about_the_game: String,
     pub short_description: String,
     pub supported_languages: String,
+    #[serde(default)]
+    pub publishers: Vec<String>,
+    #[serde(default)]
+    pub genres: Vec<Genre>,
+    #[serde(default)]
+    pub screenshots: Vec<Screenshot>,
+    #[serde(default)]
+    pub movies: Vec<Movie>,
+    #[serde(default)]
     pub header_image: Option<String>,
+    #[serde(default)]
     pub capsule_image: Option<String>,
-    pub screenshots: Option<Vec<Screenshot>>,
-    pub movies: Option<Vec<Movie>>,
-    pub developers: Option<Vec<String>>,
-    pub publishers: Option<Vec<String>>,
-    pub genres: Option<Vec<Genre>>,
-    pub categories: Option<Vec<Category>>,
+    #[serde(default)]
     pub pc_requirements: Requirements,
+    #[serde(default)]
     pub mac_requirements: Requirements,
+    #[serde(default)]
     pub linux_requirements: Requirements,
     pub release_date: ReleaseDate,
     pub content_descriptors: ContentDescriptors,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Requirements {
-    pub minimum: Option<String>,
-    pub recommended: Option<String>,
-}
-
-impl Default for Requirements {
-    fn default() -> Self {
-        Self {
-            minimum: Some(String::new()),
-            recommended: Some(String::new()),
-        }
-    }
+    #[serde(default)]
+    pub minimum: String,
+    #[serde(default)]
+    pub recommended: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

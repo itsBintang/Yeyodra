@@ -11,27 +11,34 @@ import type {
   GameRepack,
   GameStats,
   ShopDetails,
+  LibraryGame,
 } from "@/types";
+import { useAppDispatch } from "@/store";
+import { setHeaderTitle } from "@/features/appSlice";
 
 export interface GameDetailsContext {
   // Core Data
   shopDetails: ShopDetails | null;
   stats: GameStats | null;
   repacks: GameRepack[];
+  game: LibraryGame | null;
   
   // Loading States
   isLoading: boolean;
   
   // Actions
   updateRepacks: () => Promise<void>;
+  updateGame: () => Promise<void>;
 }
 
 const gameDetailsContext = createContext<GameDetailsContext>({
   shopDetails: null,
   stats: null,
   repacks: [],
+  game: null,
   isLoading: true,
   updateRepacks: async () => {},
+  updateGame: async () => {},
 });
 
 export const { Provider } = gameDetailsContext;
@@ -49,9 +56,11 @@ export function GameDetailsProvider({
   shop,
   children,
 }: GameDetailsProviderProps) {
+  const dispatch = useAppDispatch();
   const [shopDetails, setShopDetails] = useState<ShopDetails | null>(null);
   const [stats, setStats] = useState<GameStats | null>(null);
   const [repacks, setRepacks] = useState<GameRepack[]>([]);
+  const [game, setGame] = useState<LibraryGame | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch shop details (Steam API)
@@ -80,6 +89,19 @@ export function GameDetailsProvider({
       });
       
       setStats(gameStats);
+      
+      // Save shop assets if available
+      if (gameStats?.assets) {
+        try {
+          await invoke("save_game_shop_assets", {
+            shop,
+            objectId,
+            assets: gameStats.assets,
+          });
+        } catch (error) {
+          console.error("Failed to save shop assets:", error);
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch game stats:", error);
       // Stats are optional, don't block UI
@@ -105,6 +127,34 @@ export function GameDetailsProvider({
     }
   }, [objectId, shop]);
 
+  // Fetch game from library
+  const updateGame = useCallback(async () => {
+    try {
+      const libraryGame = await invoke<LibraryGame | null>("get_library_game", {
+        shop,
+        objectId,
+      });
+      
+      setGame(libraryGame);
+    } catch (error) {
+      console.error("Failed to fetch library game:", error);
+      setGame(null);
+    }
+  }, [objectId, shop]);
+
+  // Set header title when component mounts or objectId changes
+  useEffect(() => {
+    // Reset header title first
+    dispatch(setHeaderTitle(""));
+  }, [objectId, dispatch]);
+
+  // Update header title when shopDetails loads
+  useEffect(() => {
+    if (shopDetails?.name) {
+      dispatch(setHeaderTitle(shopDetails.name));
+    }
+  }, [shopDetails?.name, dispatch]);
+
   // Initial data fetch
   useEffect(() => {
     const loadGameDetails = async () => {
@@ -115,23 +165,26 @@ export function GameDetailsProvider({
         fetchShopDetails(),
         fetchStats(),
         updateRepacks(),
+        updateGame(),
       ]);
       
       setIsLoading(false);
     };
 
     loadGameDetails();
-  }, [fetchShopDetails, fetchStats, updateRepacks]);
+  }, [fetchShopDetails, fetchStats, updateRepacks, updateGame]);
 
   const value = useMemo<GameDetailsContext>(
     () => ({
       shopDetails,
       stats,
       repacks,
+      game,
       isLoading,
       updateRepacks,
+      updateGame,
     }),
-    [shopDetails, stats, repacks, isLoading, updateRepacks]
+    [shopDetails, stats, repacks, game, isLoading, updateRepacks, updateGame]
   );
 
   return <Provider value={value}>{children}</Provider>;

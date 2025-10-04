@@ -42,7 +42,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route element={<App />}>
             <Route path="/" element={<Home />} />
             <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/game/:objectId" element={<GameDetails />} />
+            <Route path="/game/:shop/:objectId" element={<GameDetails />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

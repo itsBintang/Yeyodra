@@ -24,7 +24,8 @@
     "paused": "{{title}} (Paused)",
     "show_playable_only_tooltip": "Show playable only",
     "add_custom_game_tooltip": "Add custom game",
-    "game_has_no_executable": "Game has no executable"
+    "game_has_no_executable": "Game has no executable",
+    "no_games_in_library": "No games in library"
   },
   "header": {
     "home": "Home",
@@ -64,6 +65,8 @@
   },
   "game_details": {
     "download": "Download",
+    "add_to_library": "Add to library",
+    "options": "Options",
     "stats": "Stats",
     "download_count": "Download Count",
     "player_count": "Player Count",
@@ -81,7 +84,8 @@
     "screenshot": "Screenshot {{number}}",
     "previous_screenshot": "Previous",
     "next_screenshot": "Next",
-    "open_screenshot": "Open screenshot {{number}}"
+    "open_screenshot": "Open screenshot {{number}}",
+    "cloud_save": "Cloud save"
   }
 }
 
