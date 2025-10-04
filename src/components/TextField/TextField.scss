@@ -1,34 +1,85 @@
 @use "../../scss/globals.scss";
 
 .text-field {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  gap: globals.$spacing-unit;
 
-  &__input {
-    width: 100%;
-    padding: calc(globals.$spacing-unit * 1.5);
-    border: 1px solid globals.$border-color;
-    border-radius: 4px;
+  &__label {
     font-size: 14px;
+    font-weight: 500;
+    color: #dadbe1;
+  }
+
+  &__wrapper {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+    width: 100%;
+  }
+
+  &__input-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    border: solid 1px globals.$border-color;
+    border-radius: 8px;
+    background-color: globals.$dark-background-color;
+    height: 40px;
+    min-height: 40px;
     transition: all ease 0.2s;
 
-    &:focus {
-      outline: none;
-      border-color: globals.$primary-color;
+    &:hover:not(:has(input:disabled)) {
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
-    &::placeholder {
-      color: globals.$body-color;
-    }
-
-    &--light {
-      background-color: #fff;
-      color: #000;
-    }
-
-    &--dark {
-      background-color: rgba(0, 0, 0, 0.3);
-      color: #fff;
+    &:focus-within {
+      border-color: #dadbe1;
     }
   }
-}
 
+  &__input {
+    flex: 1;
+    width: 100%;
+    padding: globals.$spacing-unit;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: #dadbe1;
+    font-size: 14px;
+    font-family: inherit;
+    text-overflow: ellipsis;
+    height: 100%;
+
+    &::placeholder {
+      color: globals.$muted-color;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+
+    &:focus:not(:disabled) {
+      cursor: text;
+    }
+
+    // Remove theme variants since we use one consistent dark theme
+    &--light,
+    &--dark {
+      background-color: transparent;
+      color: #dadbe1;
+    }
+  }
+
+  &__right-content {
+    flex-shrink: 0;
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: globals.$muted-color;
+    font-style: italic;
+  }
+}

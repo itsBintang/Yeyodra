@@ -18,7 +18,7 @@ import { Home } from "./pages/Home";
 import { Catalogue } from "./pages/Catalogue";
 import { GameDetails } from "./pages/GameDetails";
 import { Downloads } from "./pages/Downloads";
-import { Settings } from "./pages/Settings";
+import { Settings } from "./pages/Settings/Settings";
 import { store } from "./store";
 import resources from "./locales";
 

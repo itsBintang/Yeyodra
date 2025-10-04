@@ -201,3 +201,10 @@ export interface GameRepack {
   repacker: string;
 }
 
+// User Preferences (Simplified - Only essential settings)
+export interface UserPreferences {
+  downloadsPath?: string | null;
+  steamPath?: string | null;
+  language?: string;
+}
+

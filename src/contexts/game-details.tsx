@@ -135,6 +135,7 @@ export function GameDetailsProvider({
         objectId,
       });
       
+      console.log("[GameDetails] Library game fetched:", libraryGame);
       setGame(libraryGame);
     } catch (error) {
       console.error("Failed to fetch library game:", error);

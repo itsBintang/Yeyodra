@@ -31,17 +31,23 @@ export function HeroPanelActions() {
     setToggleLibraryGameDisabled(true);
     
     try {
-      await invoke("add_game_to_library", {
+      console.log("[AddToLibrary] Adding game:", { shop, objectId, title: shopDetails.name });
+      
+      const result = await invoke("add_game_to_library", {
         shop,
         objectId,
         title: shopDetails.name,
       });
+      
+      console.log("[AddToLibrary] Game added successfully:", result);
       
       // Update game state and library
       await Promise.all([
         updateGame(),
         updateLibrary(),
       ]);
+      
+      console.log("[AddToLibrary] State updated successfully");
     } catch (error) {
       console.error("Failed to add game to library:", error);
     } finally {
@@ -69,53 +75,59 @@ export function HeroPanelActions() {
     console.log("Options clicked");
   };
 
-  // If game is not in library, show "Add to Library" button instead of Download
-  const showAddToLibrary = !game;
+  // Render different UI based on whether game is in library
+  // Game NOT in library: Show only "Add to Library" button
+  if (!game) {
+    return (
+      <Button
+        theme="outline"
+        disabled={toggleLibraryGameDisabled}
+        onClick={handleAddToLibrary}
+        className="hero-panel-actions__action"
+      >
+        <PlusCircleIcon />
+        {t("add_to_library")}
+      </Button>
+    );
+  }
 
+  // Game IS in library: Show action buttons with separator
   return (
     <div className="hero-panel-actions__container">
-      {showAddToLibrary ? (
-        <Button
-          theme="outline"
-          disabled={toggleLibraryGameDisabled}
-          onClick={handleAddToLibrary}
-          className="hero-panel-actions__action"
-        >
-          <PlusCircleIcon />
-          {t("add_to_library")}
-        </Button>
-      ) : (
-        <Button
-          onClick={handleDownloadClick}
-          theme="outline"
-          className="hero-panel-actions__action"
-        >
-          <DownloadIcon />
-          {t("download")}
-        </Button>
-      )}
+      <Button
+        onClick={handleDownloadClick}
+        theme="outline"
+        disabled={toggleLibraryGameDisabled}
+        className="hero-panel-actions__action"
+      >
+        <DownloadIcon />
+        {t("download")}
+      </Button>
       
       <div className="hero-panel-actions__separator" />
       
       <Button
         onClick={handleFavoriteClick}
         theme="outline"
+        disabled={toggleLibraryGameDisabled}
         className="hero-panel-actions__action"
       >
-        <HeartIcon />
+        {game.favorite ? <HeartFillIcon /> : <HeartIcon />}
       </Button>
 
       <Button
         onClick={handlePinClick}
         theme="outline"
+        disabled={toggleLibraryGameDisabled}
         className="hero-panel-actions__action"
       >
-        <PinIcon />
+        {game.isPinned ? <PinSlashIcon /> : <PinIcon />}
       </Button>
 
       <Button
         onClick={handleOptionsClick}
         theme="outline"
+        disabled={toggleLibraryGameDisabled}
         className="hero-panel-actions__action"
       >
         <GearIcon />

@@ -8,16 +8,23 @@ use crate::api::ShopAssets;
 pub struct LibraryGame {
     pub id: String,
     pub title: String,
+    #[serde(rename = "objectId", alias = "object_id")]
     pub object_id: String,
     pub shop: String,
+    #[serde(rename = "iconUrl", alias = "icon_url")]
     pub icon_url: Option<String>,
+    #[serde(rename = "libraryHeroImageUrl", alias = "library_hero_image_url")]
     pub library_hero_image_url: Option<String>,
+    #[serde(rename = "logoImageUrl", alias = "logo_image_url")]
     pub logo_image_url: Option<String>,
+    #[serde(rename = "playTimeInSeconds", alias = "play_time_in_seconds")]
     pub play_time_in_seconds: i64,
+    #[serde(rename = "lastTimePlayed", alias = "last_time_played")]
     pub last_time_played: Option<String>,
+    #[serde(rename = "isDeleted", alias = "is_deleted")]
     pub is_deleted: bool,
     pub favorite: bool,
-    #[serde(rename = "isPinned")]
+    #[serde(rename = "isPinned", alias = "is_pinned")]
     pub is_pinned: bool,
 }
 

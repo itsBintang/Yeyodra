@@ -86,6 +86,19 @@
     "next_screenshot": "Next",
     "open_screenshot": "Open screenshot {{number}}",
     "cloud_save": "Cloud save"
+  },
+  "settings": {
+    "general": "General",
+    "download_sources": "Download sources",
+    "account": "Account",
+    "downloads_path": "Downloads path",
+    "steam_path": "Steam installation path",
+    "change": "Change",
+    "not_set": "Not set",
+    "auto_detected": "Auto-detected",
+    "steam_path_custom": "Using custom Steam path",
+    "steam_path_auto": "Steam path was automatically detected from Windows Registry",
+    "loading": "Loading settings..."
   }
 }
 
