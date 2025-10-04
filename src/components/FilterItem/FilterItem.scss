@@ -1,0 +1,36 @@
+@use "../../scss/globals.scss";
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: globals.$spacing-unit;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid globals.$border-color;
+  border-radius: 16px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &__orb {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &__label {
+    font-weight: 500;
+  }
+
+  &__remove {
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.7;
+  }
+}
+

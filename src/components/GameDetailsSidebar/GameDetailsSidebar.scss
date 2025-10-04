@@ -1,0 +1,147 @@
+@import "@/scss/globals.scss";
+
+.game-details-sidebar {
+  height: 100%;
+  flex-shrink: 0;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: calc($spacing-unit * 1.5);
+
+  @media (min-width: 1024px) {
+    width: 320px;
+  }
+
+  @media (min-width: 1280px) {
+    width: 380px;
+  }
+
+  @media (min-width: 1440px) {
+    width: 420px;
+  }
+
+  @media (max-width: 768px) {
+    width: 35%;
+    min-width: 220px;
+  }
+
+  @media (max-width: 480px) {
+    width: 40%;
+    min-width: 200px;
+  }
+  
+  // Stats Section (Hydra style - now using SidebarSection wrapper)
+  &__stats {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit * 2);
+    padding: calc($spacing-unit * 2);
+  }
+  
+  &__stat-category {
+    display: flex;
+    flex-direction: row;
+    gap: calc($spacing-unit / 2);
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  &__stat-title {
+    font-size: $small-font-size;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: $spacing-unit;
+    color: $muted-color;
+    margin: 0;
+  }
+  
+  &__stat-value {
+    font-size: $body-font-size;
+    color: $body-color;
+    margin: 0;
+  }
+  
+  // System Requirements
+  &__requirement-buttons {
+    width: 100%;
+    display: flex;
+    
+    button {
+      border-radius: 0;
+      flex: 1;
+      border: none;
+      border-bottom: 1px solid $border-color;
+      
+      &:first-child {
+        border-right: 1px solid $border-color;
+      }
+    }
+  }
+  
+  &__requirement-details {
+    padding: calc($spacing-unit * 2);
+    line-height: 22px;
+    font-size: $body-font-size;
+    color: $body-color;
+    
+    a {
+      display: flex;
+      color: $body-color;
+    }
+    
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    li {
+      margin: calc($spacing-unit / 2) 0;
+      padding-left: 0;
+    }
+    
+    strong, b {
+      color: $muted-color;
+      font-weight: 600;
+    }
+    
+    br {
+      display: block;
+      content: "";
+      margin: calc($spacing-unit / 2) 0;
+    }
+  }
+  
+  // Information List
+  &__info-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit * 2);
+    padding: calc($spacing-unit * 2);
+  }
+  
+  &__info-item {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit / 2);
+  }
+  
+  &__info-label {
+    font-size: $small-font-size;
+    color: $muted-color;
+    font-weight: 600;
+  }
+  
+  &__info-value {
+    font-size: $body-font-size;
+    color: $body-color;
+    line-height: 1.5;
+    
+    &--free {
+      color: $success-color;
+      font-weight: 600;
+    }
+  }
+}
+

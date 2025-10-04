@@ -1,0 +1,87 @@
+{
+  "app": {
+    "welcome": "Welcome to Chaos",
+    "description": "A modern Tauri application built with React and TypeScript"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "sidebar": {
+    "home": "Home",
+    "catalogue": "Catalogue",
+    "downloads": "Downloads",
+    "settings": "Settings",
+    "my_library": "My library",
+    "favorites": "Favorites",
+    "sign_in": "Sign in",
+    "friends": "Friends",
+    "need_help": "Need help?",
+    "filter": "Filter",
+    "downloading": "Downloading {{title}} ({{percentage}}%)",
+    "queued": "{{title}} (Queued)",
+    "paused": "{{title}} (Paused)",
+    "show_playable_only_tooltip": "Show playable only",
+    "add_custom_game_tooltip": "Add custom game",
+    "game_has_no_executable": "Game has no executable"
+  },
+  "header": {
+    "home": "Home",
+    "catalogue": "Catalogue",
+    "downloads": "Downloads",
+    "settings": "Settings",
+    "search": "Search",
+    "search_results": "Search results"
+  },
+  "home": {
+    "featured": "Featured",
+    "hot": "Hot now",
+    "weekly": "Top games of the week",
+    "achievements": "Games to beat",
+    "surprise_me": "Surprise me",
+    "no_results": "No results found",
+    "start_typing": "Start typing to search..."
+  },
+  "game_card": {
+    "no_downloads": "No downloads available",
+    "available": "available"
+  },
+  "catalogue": {
+    "title": "Catalogue",
+    "search_placeholder": "Search games...",
+    "result_count": "{{resultCount}} results",
+    "no_results": "No games found",
+    "loading": "Loading games...",
+    "genres": "Genres",
+    "tags": "Tags",
+    "download_sources": "Download Sources",
+    "developers": "Developers",
+    "publishers": "Publishers",
+    "clear_filters": "Clear ({{filterCount}})",
+    "filter_count": "{{filterCount}} available",
+    "search": "Search"
+  },
+  "game_details": {
+    "download": "Download",
+    "stats": "Stats",
+    "download_count": "Download Count",
+    "player_count": "Player Count",
+    "requirements": "System Requirements",
+    "minimum": "Minimum",
+    "recommended": "Recommended",
+    "information": "Information",
+    "no_downloads": "No downloads available",
+    "updated_at": "Updated: {{updated_at}}",
+    "download_options": "{{count}} download option available",
+    "download_options_plural": "{{count}} download options available",
+    "release_date": "Released on {{date}}",
+    "publisher": "Published by {{publisher}}",
+    "video": "Video {{number}}",
+    "screenshot": "Screenshot {{number}}",
+    "previous_screenshot": "Previous",
+    "next_screenshot": "Next",
+    "open_screenshot": "Open screenshot {{number}}"
+  }
+}
+

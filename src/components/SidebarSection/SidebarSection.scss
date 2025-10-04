@@ -1,0 +1,48 @@
+@import "@/scss/globals.scss";
+
+.sidebar-section {
+  background-color: $background-color;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  &__button {
+    padding: calc($spacing-unit * 2.5) calc($spacing-unit * 2);
+    display: flex;
+    align-items: center;
+    background-color: $background-color;
+    color: $muted-color;
+    width: 100%;
+    cursor: pointer;
+    transition: all ease 0.2s;
+    gap: $spacing-unit;
+    font-size: $body-font-size;
+    font-weight: bold;
+    border: none;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &:active {
+      opacity: $active-opacity;
+    }
+  }
+
+  &__chevron {
+    transition: transform ease 0.2s;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__content {
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+    background-color: $dark-background-color;
+    position: relative;
+  }
+}
+

@@ -1,0 +1,28 @@
+@import "@/scss/globals.scss";
+
+.description-header {
+  width: 100%;
+  padding: calc($spacing-unit * 1.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: $background-color;
+  height: 72px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: $spacing-unit;
+
+  &__info {
+    display: flex;
+    gap: $spacing-unit;
+    flex-direction: column;
+    
+    p {
+      margin: 0;
+      font-size: $body-font-size;
+      color: $body-color;
+    }
+  }
+}
+

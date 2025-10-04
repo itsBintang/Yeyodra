@@ -1,0 +1,61 @@
+@use "../../scss/globals.scss";
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: globals.$spacing-unit;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+
+  &__input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .checkbox-field__checkmark {
+      background-color: globals.$primary-color;
+      border-color: globals.$primary-color;
+
+      &::after {
+        display: block;
+      }
+    }
+  }
+
+  &__checkmark {
+    position: relative;
+    height: 16px;
+    width: 16px;
+    background-color: transparent;
+    border: 2px solid globals.$border-color;
+    border-radius: 3px;
+    transition: all ease 0.2s;
+
+    &::after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid #000;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+
+  &__label {
+    color: #fff;
+    font-size: 13px;
+    flex: 1;
+  }
+
+  &:hover .checkbox-field__checkmark {
+    border-color: globals.$primary-color;
+  }
+}
+
