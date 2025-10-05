@@ -261,22 +261,32 @@ pub async fn download_steamtools(app_id: &str) -> Result<DownloadResult> {
     println!("Downloading SteamTools for AppID: {}", app_id);
     
     // Define repositories in priority order
+    // You can reorder these to change which repository is tried first
     let repos = vec![
-        ("SteamAutoCracks/ManifestHub".to_string(), RepoType::Branch),
-        (
-            "https://raw.githubusercontent.com/sushi-dev55/sushitools-games-repo/refs/heads/main/".to_string(),
-            RepoType::DirectZip,
-        ),
-        ("Fairyvmos/bruh-hub".to_string(), RepoType::Branch),
-        ("itsBintang/ManifestHub".to_string(), RepoType::Branch),
-        (
-            "https://mellyiscoolaf.pythonanywhere.com/".to_string(),
-            RepoType::DirectUrl,
-        ),
+        // 1. Try SteamAutoCracks first (most reliable, maintained)
         (
             "http://masss.pythonanywhere.com/storage?auth=IEOIJE54esfsipoE56GE4&appid=".to_string(),
             RepoType::DirectUrl,
         ),
+
+        (
+            "https://mellyiscoolaf.pythonanywhere.com/".to_string(),
+            RepoType::DirectUrl,
+        ),
+
+        ("SteamAutoCracks/ManifestHub".to_string(), RepoType::Branch),
+        
+        // 2. Direct ZIP from sushitools (fast, no API rate limit)
+        (
+            "https://raw.githubusercontent.com/sushi-dev55/sushitools-games-repo/refs/heads/main/".to_string(),
+            RepoType::DirectZip,
+        ),
+        
+        // 3. Alternative GitHub repos
+        ("Fairyvmos/bruh-hub".to_string(), RepoType::Branch),
+        ("itsBintang/ManifestHub".to_string(), RepoType::Branch),
+        
+       
     ];
     
     // Try each repository

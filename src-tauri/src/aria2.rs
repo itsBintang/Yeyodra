@@ -18,8 +18,20 @@ impl Aria2Process {
     /// Spawn a new aria2c process with RPC enabled
     pub fn spawn(port: u16, secret: String) -> Result<Self, String> {
         let binary_path = if cfg!(debug_assertions) {
-            // Development: use binary from binaries folder
-            std::path::Path::new("binaries").join("aria2c.exe")
+            // Development: use binary from workspace root binaries folder
+            let current_dir = std::env::current_dir()
+                .map_err(|e| format!("Failed to get current directory: {}", e))?;
+            
+            // Check if we're in src-tauri directory, if so go up one level
+            let workspace_root = if current_dir.ends_with("src-tauri") {
+                current_dir.parent()
+                    .ok_or("Failed to get parent directory")?
+                    .to_path_buf()
+            } else {
+                current_dir
+            };
+            
+            workspace_root.join("binaries").join("aria2c.exe")
         } else {
             // Production: use bundled binary
             let exe_dir = std::env::current_exe()
@@ -34,21 +46,31 @@ impl Aria2Process {
             return Err(format!("aria2c binary not found at: {:?}", binary_path));
         }
 
-        let process = Command::new(binary_path)
-            .args(&[
-                "--enable-rpc",
-                "--rpc-listen-all=false",
-                &format!("--rpc-listen-port={}", port),
-                &format!("--rpc-secret={}", secret),
-                "--file-allocation=none",
-                "--allow-overwrite=true",
-                "--max-connection-per-server=16",
-                "--split=16",
-                "--min-split-size=1M",
-                "--continue=true",
-                "--auto-file-renaming=false",
-                "--quiet=true",
-            ])
+        let mut command = Command::new(binary_path);
+        command.args(&[
+            "--enable-rpc",
+            "--rpc-listen-all=false",
+            &format!("--rpc-listen-port={}", port),
+            &format!("--rpc-secret={}", secret),
+            "--file-allocation=none",
+            "--allow-overwrite=true",
+            "--max-connection-per-server=16",
+            "--split=16",
+            "--min-split-size=1M",
+            "--continue=true",
+            "--auto-file-renaming=false",
+            "--quiet=true",
+        ]);
+
+        // Hide console window on Windows in release builds
+        #[cfg(all(windows, not(debug_assertions)))]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            command.creation_flags(CREATE_NO_WINDOW);
+        }
+
+        let process = command
             .spawn()
             .map_err(|e| format!("Failed to spawn aria2c: {}", e))?;
 

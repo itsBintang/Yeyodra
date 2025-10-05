@@ -143,12 +143,59 @@ static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 fn get_http_client() -> &'static reqwest::Client {
     HTTP_CLIENT.get_or_init(|| {
         reqwest::Client::builder()
-            .timeout(Duration::from_secs(30)) // 30 second timeout
-            .connect_timeout(Duration::from_secs(10)) // 10 second connect timeout
+            .timeout(Duration::from_secs(45)) // Increased to 45 seconds
+            .connect_timeout(Duration::from_secs(15)) // Increased to 15 seconds
+            .pool_max_idle_per_host(0) // Disable connection pooling to avoid keep-alive issues
+            .tcp_keepalive(Duration::from_secs(60))
             .user_agent("Chaos Launcher v0.1.0")
             .build()
             .expect("Failed to create HTTP client")
     })
+}
+
+/// Helper function to retry requests with exponential backoff
+async fn fetch_with_retry<T: for<'de> serde::de::Deserialize<'de>>(
+    url: &str,
+    max_retries: u32,
+) -> Result<T, String> {
+    let client = get_http_client();
+    let mut last_error = String::new();
+    
+    for attempt in 0..=max_retries {
+        if attempt > 0 {
+            let delay = Duration::from_millis(500 * (2_u64.pow(attempt - 1)));
+            println!("Retrying request to {} (attempt {}/{}), waiting {:?}", url, attempt + 1, max_retries + 1, delay);
+            tokio::time::sleep(delay).await;
+        }
+        
+        match client.get(url).send().await {
+            Ok(response) => {
+                match response.json::<T>().await {
+                    Ok(data) => return Ok(data),
+                    Err(e) => {
+                        last_error = format!("Failed to parse response: {}", e);
+                        if attempt == max_retries {
+                            break;
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                last_error = format!("Request failed: {}", e);
+                // Don't retry on client errors (4xx), only on network/server errors
+                if e.is_timeout() || e.is_connect() || e.status().map_or(true, |s| s.is_server_error()) {
+                    if attempt == max_retries {
+                        break;
+                    }
+                    continue;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    
+    Err(last_error)
 }
 
 // Global state for random game selection (like Hydra)
@@ -161,45 +208,18 @@ struct RandomGameState {
 
 pub async fn fetch_catalogue(category: &str) -> Result<Vec<CatalogueGame>, String> {
     let url = format!("{}/catalogue/{}?take=12&skip=0", API_URL, category);
-    
-    let client = get_http_client();
-    let response = client
-        .get(&url)
-        .send()
+    fetch_with_retry::<Vec<CatalogueGame>>(&url, 2)
         .await
-        .map_err(|e| format!("Failed to fetch catalogue: {}", e))?;
-
-    if !response.status().is_success() {
-        return Err(format!("API returned error status: {}", response.status()));
-    }
-
-    let games = response
-        .json::<Vec<CatalogueGame>>()
-        .await
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
-
-    Ok(games)
+        .map_err(|e| format!("Failed to fetch catalogue: {}", e))
 }
 
 pub async fn fetch_trending_games() -> Result<Vec<TrendingGame>, String> {
     // Hydra uses /catalogue/featured endpoint with language param
     let url = format!("{}/catalogue/featured?language=en", API_URL);
     
-    let client = get_http_client();
-    let response = client
-        .get(&url)
-        .send()
+    let mut games = fetch_with_retry::<Vec<TrendingGame>>(&url, 2)
         .await
         .map_err(|e| format!("Failed to fetch trending games: {}", e))?;
-
-    if !response.status().is_success() {
-        return Err(format!("API returned error status: {}", response.status()));
-    }
-
-    let mut games = response
-        .json::<Vec<TrendingGame>>()
-        .await
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
 
     // Hydra returns only the first game for hero banner
     games.truncate(1);
