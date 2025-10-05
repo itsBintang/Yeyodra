@@ -4,7 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { DeviceCameraIcon } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { updateUserProfile } from "@/features/userSlice";
+import { saveUserProfile } from "@/features/userSlice";
 import { Modal, Button, TextField, Avatar } from "@/components";
 import "./EditProfileModal.scss";
 
@@ -66,12 +66,14 @@ export function EditProfileModal({ visible, onClose }: EditProfileModalProps) {
         profileImageUrl,
       };
 
-      // Update Redux
-      dispatch(updateUserProfile(updates));
+      // Prepare updated profile
+      const updatedProfile = {
+        ...(userProfile || { id: "local-user", createdAt: new Date().toISOString() }),
+        ...updates,
+      };
 
-      // Save to localStorage for persistence
-      const currentProfile = { ...userProfile, ...updates };
-      localStorage.setItem("userProfile", JSON.stringify(currentProfile));
+      // Save to backend via Tauri
+      await dispatch(saveUserProfile(updatedProfile)).unwrap();
 
       onClose();
     } catch (error) {

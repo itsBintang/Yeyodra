@@ -10,8 +10,8 @@ import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
 
 function GameDetailsContent() {
-  const { shopDetails, stats, isLoading, game, repacks, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
-  const { objectId } = useParams<{ objectId: string }>();
+  const { shopDetails, stats, isLoading, game, repacks, achievements, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
+  const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
 
   const handleCloudSaveClick = () => {
     // TODO: Implement cloud save modal
@@ -153,7 +153,13 @@ function GameDetailsContent() {
               />
             </div>
             
-            <GameDetailsSidebar shopDetails={shopDetails} stats={stats} />
+            <GameDetailsSidebar 
+              shopDetails={shopDetails} 
+              stats={stats} 
+              achievements={achievements}
+              shop={shop}
+              objectId={objectId}
+            />
           </div>
         </section>
       </div>
@@ -175,6 +181,7 @@ function GameDetailsContent() {
         gameName={shopDetails?.name || ""}
         gameImageUrl={stats?.assets?.libraryImageUrl || shopDetails?.header_image}
         hasRepacks={repacks && repacks.length > 0}
+        onDownloadComplete={updateGame}
       />
     </>
   );

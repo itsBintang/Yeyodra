@@ -20,6 +20,7 @@ import { GameDetails } from "./pages/GameDetails";
 import { Downloads } from "./pages/Downloads";
 import { Settings } from "./pages/Settings/Settings";
 import { Profile } from "./pages/Profile/Profile";
+import { Achievements } from "./pages/Achievements/Achievements";
 import { store } from "./store";
 import resources from "./locales";
 
@@ -41,12 +42,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <HashRouter>
         <Routes>
           <Route element={<App />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/game/:shop/:objectId" element={<GameDetails />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile/:userId" element={<Profile />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/catalogue" element={<Catalogue />} />
+              <Route path="/game/:shop/:objectId" element={<GameDetails />} />
+              <Route path="/game/:shop/:objectId/achievements/:title" element={<Achievements />} />
+              <Route path="/downloads" element={<Downloads />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile/:userId" element={<Profile />} />
           </Route>
         </Routes>
       </HashRouter>

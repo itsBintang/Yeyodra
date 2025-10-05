@@ -19,7 +19,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' asset: https://asset.localhost data: blob: http://asset.localhost; media-src 'self' asset: https://asset.localhost; connect-src 'self' https://hydra-api-us-east-1.losbroxas.org ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; font-src 'self' data:;",
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' asset: https://asset.localhost https: http: data: blob: http://asset.localhost https://*.steamstatic.com https://*.akamai.steamstatic.com https://*.cloudflare.steamstatic.com; media-src 'self' asset: https://asset.localhost https: http:; connect-src 'self' https://hydra-api-us-east-1.losbroxas.org https://store.steampowered.com ipc: http://ipc.localhost ws://localhost:* wss://localhost:*; style-src 'self' 'unsafe-inline'; font-src 'self' data:;",
       "assetProtocol": {
         "enable": true,
         "scope": ["**"]

@@ -1,23 +1,12 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ClockIcon } from "@primer/octicons-react";
-import type { GameShop } from "@/types";
+import type { LibraryGame } from "@/types";
 import "./UserLibraryGameCard.scss";
 
-interface UserLibraryGame {
-  id: number;
-  objectId: string;
-  shop: GameShop;
-  title: string;
-  iconUrl: string | null;
-  coverImageUrl: string | null;
-  playTimeInSeconds: number;
-  lastTimePlayed: Date | null;
-}
-
 interface UserLibraryGameCardProps {
-  game: UserLibraryGame;
+  game: LibraryGame;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
@@ -29,7 +18,6 @@ export function UserLibraryGameCard({
 }: UserLibraryGameCardProps) {
   const { t } = useTranslation("profile");
   const navigate = useNavigate();
-  const [isTooltipHovered, setIsTooltipHovered] = useState(false);
 
   const formatPlayTime = useCallback(
     (playTimeInSeconds = 0, isShort = false) => {
@@ -58,7 +46,7 @@ export function UserLibraryGameCard({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className="user-library-game__wrapper"
-      title={isTooltipHovered ? undefined : game.title}
+      title={game.title}
     >
       <button
         type="button"

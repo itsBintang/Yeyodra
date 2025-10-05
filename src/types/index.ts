@@ -239,6 +239,7 @@ export interface LibraryGame {
   isPinned: boolean;
   executablePath?: string | null;
   launchOptions?: string | null;
+  isInstalled?: boolean; // NEW: Track if game is installed via SteamTools
 }
 
 // Game Repack
@@ -256,5 +257,26 @@ export interface UserPreferences {
   downloadsPath?: string | null;
   steamPath?: string | null;
   language?: string;
+}
+
+// Achievement Types
+export interface SteamAchievement {
+  name: string;
+  displayName: string;
+  description?: string;
+  icon: string;
+  icongray: string;
+  hidden: boolean;
+  points?: number;
+}
+
+export interface UnlockedAchievement {
+  name: string;
+  unlockTime: number;
+}
+
+export interface UserAchievement extends SteamAchievement {
+  unlocked: boolean;
+  unlockTime: number | null;
 }
 

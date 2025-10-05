@@ -1,39 +1,36 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { invoke } from "@tauri-apps/api/core";
 import type { UserProfile } from "@/types";
 
 interface UserState {
   userProfile: UserProfile | null;
   isInitialized: boolean;
+  isLoading: boolean;
 }
-
-// Default local user profile
-const DEFAULT_USER_PROFILE: UserProfile = {
-  id: "local-user",
-  displayName: "Local User",
-  createdAt: new Date().toISOString(),
-};
-
-// Load from localStorage if exists
-const loadUserProfileFromStorage = (): UserProfile => {
-  try {
-    const stored = localStorage.getItem("userProfile");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Ensure it has required fields
-      if (parsed.id && parsed.displayName) {
-        return parsed;
-      }
-    }
-  } catch (error) {
-    console.error("Failed to load user profile from storage:", error);
-  }
-  return DEFAULT_USER_PROFILE;
-};
 
 const initialState: UserState = {
   userProfile: null,
   isInitialized: false,
+  isLoading: false,
 };
+
+// Async thunk to load user profile from Tauri backend
+export const loadUserProfile = createAsyncThunk(
+  "user/loadProfile",
+  async () => {
+    const profile = await invoke<UserProfile>("get_user_profile");
+    return profile;
+  }
+);
+
+// Async thunk to save user profile
+export const saveUserProfile = createAsyncThunk(
+  "user/saveProfile",
+  async (profile: UserProfile) => {
+    const savedProfile = await invoke<UserProfile>("update_user_profile_data", { profile });
+    return savedProfile;
+  }
+);
 
 export const userSlice = createSlice({
   name: "user",
@@ -42,25 +39,32 @@ export const userSlice = createSlice({
     setUserProfile: (state, action: PayloadAction<UserProfile>) => {
       state.userProfile = action.payload;
       state.isInitialized = true;
-      // Save to localStorage
-      localStorage.setItem("userProfile", JSON.stringify(action.payload));
     },
-    updateUserProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
+    updateUserProfileLocal: (state, action: PayloadAction<Partial<UserProfile>>) => {
       if (state.userProfile) {
         state.userProfile = { ...state.userProfile, ...action.payload };
-        // Save to localStorage
-        localStorage.setItem("userProfile", JSON.stringify(state.userProfile));
-      }
-    },
-    initializeDefaultUser: (state) => {
-      if (!state.userProfile) {
-        // Load from localStorage or use default
-        state.userProfile = loadUserProfileFromStorage();
-        state.isInitialized = true;
       }
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadUserProfile.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(loadUserProfile.fulfilled, (state, action) => {
+        state.userProfile = action.payload;
+        state.isInitialized = true;
+        state.isLoading = false;
+      })
+      .addCase(loadUserProfile.rejected, (state) => {
+        state.isLoading = false;
+        state.isInitialized = true;
+      })
+      .addCase(saveUserProfile.fulfilled, (state, action) => {
+        state.userProfile = action.payload;
+      });
+  },
 });
 
-export const { setUserProfile, updateUserProfile, initializeDefaultUser } = userSlice.actions;
+export const { setUserProfile, updateUserProfileLocal } = userSlice.actions;
 export default userSlice.reducer;

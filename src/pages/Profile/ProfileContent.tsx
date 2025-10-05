@@ -12,7 +12,7 @@ interface ProfileContentProps {
   userId: string;
 }
 
-export function ProfileContent({ userId }: ProfileContentProps) {
+export function ProfileContent({ userId: _userId }: ProfileContentProps) {
   const { t } = useTranslation("profile");
   const dispatch = useAppDispatch();
   const [sortBy, setSortBy] = useState<SortOption>("playedRecently");

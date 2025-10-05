@@ -13,6 +13,7 @@ interface DownloadModalProps {
   gameName: string;
   gameImageUrl?: string | null;
   hasRepacks?: boolean;
+  onDownloadComplete?: () => void; // NEW: Callback to refresh game state
 }
 
 export function DownloadModal({
@@ -22,6 +23,7 @@ export function DownloadModal({
   gameName,
   gameImageUrl,
   hasRepacks = false,
+  onDownloadComplete,
 }: DownloadModalProps) {
   const { t } = useTranslation("game_details");
   const { showSuccessToast, showErrorToast } = useToast();
@@ -54,6 +56,12 @@ export function DownloadModal({
 
       if (result.success) {
         showSuccessToast(result.message);
+        
+        // Trigger game state refresh to update button to "Play"
+        if (onDownloadComplete) {
+          onDownloadComplete();
+        }
+        
         onClose();
       } else {
         showErrorToast(result.message);

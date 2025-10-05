@@ -71,6 +71,7 @@
   },
   "game_details": {
     "download": "Download",
+    "play": "Play",
     "downloading": "Downloading...",
     "download_options": "Download options available",
     "download_options_description": "Choose how you want to download this game",
@@ -91,6 +92,8 @@
     "stats": "Stats",
     "download_count": "Download Count",
     "player_count": "Player Count",
+    "achievements_count": "Achievements ({{unlockedCount}}/{{achievementsCount}})",
+    "see_all_achievements": "See all achievements",
     "requirements": "System Requirements",
     "minimum": "Minimum",
     "recommended": "Recommended",
@@ -184,6 +187,14 @@
     "playtime": "Playtime",
     "amount_minutes": "{{amount}} minutes",
     "amount_hours": "{{amount}} hours"
+  },
+  "achievements": {
+    "achievements_unlocked": "Achievements Unlocked",
+    "no_achievements_title": "No achievements available",
+    "no_achievements_description": "This game doesn't have any achievements",
+    "back_to_game": "Back to Game",
+    "hidden_achievement": "Hidden Achievement",
+    "hidden_achievement_description": "This achievement is hidden"
   }
 }
 

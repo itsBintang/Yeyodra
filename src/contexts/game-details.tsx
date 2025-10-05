@@ -12,6 +12,7 @@ import type {
   GameStats,
   ShopDetails,
   LibraryGame,
+  UserAchievement,
 } from "@/types";
 import { useAppDispatch } from "@/store";
 import { setHeaderTitle } from "@/features/appSlice";
@@ -22,6 +23,7 @@ export interface GameDetailsContext {
   stats: GameStats | null;
   repacks: GameRepack[];
   game: LibraryGame | null;
+  achievements: UserAchievement[] | null;
   
   // Loading States
   isLoading: boolean;
@@ -42,6 +44,7 @@ const gameDetailsContext = createContext<GameDetailsContext>({
   stats: null,
   repacks: [],
   game: null,
+  achievements: null,
   isLoading: true,
   showGameOptionsModal: false,
   setShowGameOptionsModal: () => {},
@@ -71,6 +74,7 @@ export function GameDetailsProvider({
   const [stats, setStats] = useState<GameStats | null>(null);
   const [repacks, setRepacks] = useState<GameRepack[]>([]);
   const [game, setGame] = useState<LibraryGame | null>(null);
+  const [achievements, setAchievements] = useState<UserAchievement[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showGameOptionsModal, setShowGameOptionsModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -155,6 +159,24 @@ export function GameDetailsProvider({
     }
   }, [objectId, shop]);
 
+  // Fetch achievements
+  const fetchAchievements = useCallback(async () => {
+    try {
+      const gameAchievements = await invoke<UserAchievement[]>("get_game_achievements_command", {
+        shop,
+        objectId,
+        language: "english", // TODO: Get from settings
+      });
+      
+      console.log("[GameDetails] Achievements fetched:", gameAchievements.length);
+      setAchievements(gameAchievements);
+    } catch (error) {
+      console.error("Failed to fetch achievements:", error);
+      // Achievements are optional, set to empty array
+      setAchievements([]);
+    }
+  }, [objectId, shop]);
+
   // Set header title when component mounts or objectId changes
   useEffect(() => {
     // Reset header title first
@@ -179,13 +201,14 @@ export function GameDetailsProvider({
         fetchStats(),
         updateRepacks(),
         updateGame(),
+        fetchAchievements(),
       ]);
       
       setIsLoading(false);
     };
 
     loadGameDetails();
-  }, [fetchShopDetails, fetchStats, updateRepacks, updateGame]);
+  }, [fetchShopDetails, fetchStats, updateRepacks, updateGame, fetchAchievements]);
 
   const value = useMemo<GameDetailsContext>(
     () => ({
@@ -193,6 +216,7 @@ export function GameDetailsProvider({
       stats,
       repacks,
       game,
+      achievements,
       isLoading,
       showGameOptionsModal,
       setShowGameOptionsModal,
@@ -201,7 +225,7 @@ export function GameDetailsProvider({
       updateRepacks,
       updateGame,
     }),
-    [shopDetails, stats, repacks, game, isLoading, showGameOptionsModal, showDownloadModal, updateRepacks, updateGame]
+    [shopDetails, stats, repacks, game, achievements, isLoading, showGameOptionsModal, showDownloadModal, updateRepacks, updateGame]
   );
 
   return <Provider value={value}>{children}</Provider>;

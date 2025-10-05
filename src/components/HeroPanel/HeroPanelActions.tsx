@@ -4,6 +4,7 @@ import {
   HeartFillIcon,
   HeartIcon,
   PlusCircleIcon,
+  PlayIcon,
 } from "@primer/octicons-react";
 import { Button } from "@/components";
 import { useGameDetails } from "@/contexts/game-details";
@@ -56,6 +57,11 @@ export function HeroPanelActions() {
     setShowDownloadModal(true);
   };
 
+  const handlePlayClick = () => {
+    // TODO: Implement game launch
+    console.log("Play clicked - Launch game");
+  };
+
   const handleFavoriteClick = () => {
     // TODO: Implement favorite toggle
     console.log("Favorite clicked");
@@ -84,15 +90,28 @@ export function HeroPanelActions() {
   // Game IS in library: Show action buttons with separator
   return (
     <div className="hero-panel-actions__container">
-        <Button
-          onClick={handleDownloadClick}
-          theme="outline"
-          disabled={toggleLibraryGameDisabled}
-          className="hero-panel-actions__action"
-        >
-          <DownloadIcon />
-          {t("download")}
-        </Button>
+        {/* Show Play button if installed, Download button otherwise */}
+        {game.isInstalled ? (
+          <Button
+            onClick={handlePlayClick}
+            theme="primary"
+            disabled={toggleLibraryGameDisabled}
+            className="hero-panel-actions__action"
+          >
+            <PlayIcon />
+            {t("play")}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleDownloadClick}
+            theme="outline"
+            disabled={toggleLibraryGameDisabled}
+            className="hero-panel-actions__action"
+          >
+            <DownloadIcon />
+            {t("download")}
+          </Button>
+        )}
       
       <div className="hero-panel-actions__separator" />
       

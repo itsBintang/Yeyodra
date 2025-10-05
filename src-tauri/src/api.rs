@@ -56,12 +56,51 @@ pub struct ShopAssets {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GameStats {
-    #[serde(rename = "downloadCount")]
+    #[serde(rename = "downloadCount", alias = "download_count")]
     pub download_count: i64,
-    #[serde(rename = "playerCount")]
+    #[serde(rename = "playerCount", alias = "player_count")]
     pub player_count: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<ShopAssets>,
+}
+
+// Achievement Types
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SteamAchievement {
+    pub name: String,
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub icon: String,
+    pub icongray: String,
+    pub hidden: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub points: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UnlockedAchievement {
+    pub name: String,
+    #[serde(rename = "unlockTime")]
+    pub unlock_time: i64, // Unix timestamp in seconds
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserAchievement {
+    pub name: String,
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub icon: String,
+    pub icongray: String,
+    pub hidden: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub points: Option<i32>,
+    pub unlocked: bool,
+    #[serde(rename = "unlockTime")]
+    pub unlock_time: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -294,6 +333,31 @@ pub async fn fetch_game_stats(object_id: &str, shop: &str) -> Result<GameStats, 
         .map_err(|e| format!("Failed to parse response: {}", e))?;
 
     Ok(stats)
+}
+
+// Fetch achievements from Hydra API
+pub async fn fetch_game_achievements(object_id: &str, shop: &str, language: &str) -> Result<Vec<SteamAchievement>, String> {
+    let url = format!("{}/games/{}/{}/achievements?language={}", API_URL, shop, object_id, language);
+    
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&url)
+        .header("User-Agent", "Chaos Launcher v0.1.0")
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch game achievements: {}", e))?;
+
+    if !response.status().is_success() {
+        // If not found or error, return empty list instead of failing
+        return Ok(Vec::new());
+    }
+
+    let achievements = response
+        .json::<Vec<SteamAchievement>>()
+        .await
+        .map_err(|e| format!("Failed to parse achievements response: {}", e))?;
+
+    Ok(achievements)
 }
 
 pub async fn search_games(

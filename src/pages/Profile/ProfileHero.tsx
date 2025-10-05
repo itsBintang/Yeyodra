@@ -9,7 +9,7 @@ interface ProfileHeroProps {
   userId?: string;
 }
 
-export function ProfileHero({ userId }: ProfileHeroProps) {
+export function ProfileHero({ userId: _userId }: ProfileHeroProps) {
   const { t } = useTranslation("profile");
   const { userProfile } = useAppSelector((state) => state.user);
   const [showEditModal, setShowEditModal] = useState(false);

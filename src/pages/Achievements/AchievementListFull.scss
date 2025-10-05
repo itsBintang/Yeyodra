@@ -1,0 +1,120 @@
+@use "../../scss/globals.scss";
+
+.achievement-list-full {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: globals.$background-color;
+
+  &__items {
+    list-style: none;
+    padding: calc(globals.$spacing-unit * 2);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 2);
+    width: 100%;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: calc(globals.$spacing-unit * 2);
+    padding: calc(globals.$spacing-unit);
+    transition: all ease 0.1s;
+    color: globals.$muted-color;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: globals.$border-color;
+    }
+
+    &--unlocked {
+      // No special styling, just different from locked
+    }
+
+    &--locked {
+      // No opacity reduction like Chaos v1
+    }
+  }
+
+  &__icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icon {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    min-height: 54px;
+    border-radius: 4px;
+    object-fit: cover;
+    transition: all ease 0.2s;
+
+    &--locked {
+      filter: grayscale(100%);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: globals.$body-font-size;
+    font-weight: 400;
+    color: globals.$muted-color;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__hidden-icon {
+    display: flex;
+    color: globals.$warning-color;
+    opacity: 0.8;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  &__description {
+    font-size: globals.$body-font-size;
+    color: globals.$body-color;
+    margin: 0;
+    margin-top: 2px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  &__unlock-time {
+    white-space: nowrap;
+    display: flex;
+    font-size: globals.$small-font-size;
+
+    small {
+      display: block;
+    }
+  }
+}
+

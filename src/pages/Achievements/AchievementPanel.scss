@@ -1,0 +1,49 @@
+@use "../../scss/globals.scss";
+
+.achievement-panel {
+  padding: calc(globals.$spacing-unit * 2);
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit);
+  background-color: globals.$background-color;
+  border-bottom: solid 1px globals.$border-color;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: globals.$muted-color;
+  }
+
+  &__count {
+    font-size: globals.$body-font-size;
+    font-weight: 600;
+  }
+
+  &__percentage {
+    font-size: globals.$body-font-size;
+    font-weight: 600;
+  }
+
+  &__progress-bar {
+    width: 100%;
+    height: 8px;
+    transition: all ease 0.2s;
+
+    &::-webkit-progress-bar {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    &::-webkit-progress-value {
+      background-color: globals.$muted-color;
+      border-radius: 4px;
+    }
+
+    &::-moz-progress-bar {
+      background-color: globals.$muted-color;
+      border-radius: 4px;
+    }
+  }
+}
+

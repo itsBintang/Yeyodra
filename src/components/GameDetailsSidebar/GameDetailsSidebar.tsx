@@ -1,18 +1,22 @@
 import { useMemo, useState } from "react";
 import { DownloadIcon, PeopleIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
-import type { GameStats, ShopDetails } from "@/types";
+import type { GameStats, ShopDetails, UserAchievement } from "@/types";
 import { Button } from "../Button";
 import { SidebarSection } from "../SidebarSection/SidebarSection";
+import { AchievementsList } from "../AchievementsList/AchievementsList";
 import { GameLanguageSection } from "./GameLanguageSection";
 import "./GameDetailsSidebar.scss";
 
 interface GameDetailsSidebarProps {
   shopDetails: ShopDetails;
   stats: GameStats | null;
+  achievements?: UserAchievement[] | null;
+  shop?: string;
+  objectId?: string;
 }
 
-export function GameDetailsSidebar({ shopDetails, stats }: GameDetailsSidebarProps) {
+export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, objectId }: GameDetailsSidebarProps) {
   const { t } = useTranslation("game_details");
   const [activeRequirement, setActiveRequirement] = useState<"minimum" | "recommended">("minimum");
 
@@ -47,6 +51,23 @@ export function GameDetailsSidebar({ shopDetails, stats }: GameDetailsSidebarPro
 
   return (
     <aside className="game-details-sidebar">
+      {/* Achievements Section */}
+      {achievements && achievements.length > 0 && (
+        <SidebarSection 
+          title={t("achievements_count", {
+            unlockedCount: achievements.filter(a => a.unlocked).length,
+            achievementsCount: achievements.length,
+          })}
+        >
+          <AchievementsList 
+            achievements={achievements}
+            shop={shop}
+            objectId={objectId}
+            gameTitle={shopDetails.name}
+          />
+        </SidebarSection>
+      )}
+
       {/* Stats Section (if available from Hydra) */}
       {stats && (
         <SidebarSection title={t("stats")}>

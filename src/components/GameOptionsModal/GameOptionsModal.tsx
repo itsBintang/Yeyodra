@@ -66,17 +66,17 @@ export function GameOptionsModal({
         appId: game.objectId,
       });
       
+      // Update game state first (this will mark isInstalled = false)
+      await onGameUpdate();
+      
       // Then remove from library
       await invoke("remove_library_game", {
         shop: game.shop,
         objectId: game.objectId,
       });
       
-      // Update library
-      await Promise.all([
-        onGameUpdate(),
-        updateLibrary(),
-      ]);
+      // Update library list
+      await updateLibrary();
       
       showSuccessToast(t("remove_game"), "Game removed successfully");
       setShowRemoveConfirmation(false);

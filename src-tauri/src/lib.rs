@@ -5,15 +5,21 @@ mod aria2;
 mod steamtools;
 mod download_history;
 mod steam_restart;
+mod setup;
+mod user_profile;
+mod achievements;
 
-use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details};
+use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
-use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, update_game_executable_path};
+use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, update_game_executable_path, mark_game_as_installed};
 use preferences::{UserPreferences, get_user_preferences as get_prefs, update_user_preferences as update_prefs};
+use user_profile::{UserProfile, get_user_profile as get_profile, save_user_profile as save_profile, update_user_profile as update_profile};
 use aria2::{Aria2Client, DownloadStatus, GlobalStat};
 use steamtools::{download_steamtools, DownloadResult};
 use download_history::{CompletedDownload, save_completed_download, get_download_history, remove_from_history, clear_history};
 use steam_restart::restart_steam;
+use achievements::get_game_achievements as get_achievements;
+use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -197,7 +203,7 @@ async fn download_game_steamtools(
     
     let result = download_steamtools(&app_id).await.map_err(|e| e.to_string())?;
     
-    // If successful, save to download history
+    // If successful, save to download history AND mark game as installed
     if result.success {
         let completed_download = CompletedDownload {
             app_id: app_id.clone(),
@@ -212,6 +218,12 @@ async fn download_game_steamtools(
         
         if let Err(e) = save_completed_download(completed_download) {
             eprintln!("Failed to save download history: {}", e);
+        }
+        
+        // Mark game as installed in library if it exists
+        if let Err(e) = mark_game_as_installed(&app_handle, "steam", &app_id) {
+            eprintln!("Failed to mark game as installed: {}", e);
+            // Don't fail the download, just log the error
         }
     }
     
@@ -240,19 +252,71 @@ async fn restart_steam_command() -> Result<String, String> {
     restart_steam().await.map_err(|e| e.to_string())
 }
 
-// Remove Game Command (removes SteamTools files)
+// Remove Game Command (removes SteamTools files AND marks game as not installed)
 #[tauri::command]
-async fn remove_game(app_id: String) -> Result<DownloadResult, String> {
-    steamtools::remove_game_files(&app_id).await.map_err(|e| e.to_string())
+async fn remove_game(app_handle: tauri::AppHandle, app_id: String) -> Result<DownloadResult, String> {
+    let result = steamtools::remove_game_files(&app_id).await.map_err(|e| e.to_string())?;
+    
+    // If removal was successful, mark game as not installed in library
+    if result.success {
+        // Try to get the game from library and mark as not installed
+        if let Ok(Some(mut game)) = get_game_from_library(&app_handle, "steam", &app_id) {
+            game.is_installed = false;
+            
+            // Save updated game back to library
+            let game_path = app_handle
+                .path()
+                .app_data_dir()
+                .map_err(|e| format!("Failed to get app data directory: {}", e))?
+                .join("library")
+                .join(format!("{}_{}.json", game.shop, game.object_id));
+            
+            let json = serde_json::to_string_pretty(&game)
+                .map_err(|e| format!("Failed to serialize game: {}", e))?;
+            
+            std::fs::write(&game_path, json)
+                .map_err(|e| format!("Failed to write game file: {}", e))?;
+        }
+    }
+    
+    Ok(result)
+}
+
+// User Profile Commands
+#[tauri::command]
+fn get_user_profile(app_handle: tauri::AppHandle) -> Result<UserProfile, String> {
+    get_profile(&app_handle)
+}
+
+#[tauri::command]
+fn save_user_profile_data(
+    app_handle: tauri::AppHandle,
+    profile: UserProfile,
+) -> Result<UserProfile, String> {
+    save_profile(&app_handle, profile)
+}
+
+#[tauri::command]
+fn update_user_profile_data(
+    app_handle: tauri::AppHandle,
+    profile: UserProfile,
+) -> Result<UserProfile, String> {
+    update_profile(&app_handle, profile)
+}
+
+// Achievement Commands
+#[tauri::command]
+async fn get_game_achievements_command(
+    app_handle: tauri::AppHandle,
+    shop: String,
+    object_id: String,
+    language: String,
+) -> Result<Vec<UserAchievement>, String> {
+    get_achievements(app_handle, shop, object_id, language).await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Initialize aria2c on app startup
-    if let Err(e) = aria2::init() {
-        eprintln!("Failed to initialize aria2c: {}", e);
-    }
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -285,17 +349,28 @@ pub fn run() {
             remove_completed_download,
             clear_download_history,
             restart_steam_command,
-            remove_game
+            remove_game,
+            get_user_profile,
+            save_user_profile_data,
+            update_user_profile_data,
+            get_game_achievements_command
         ])
-        .setup(|_app| {
-            // Aria2 is already initialized above
+        .setup(|app| {
+            // Initialize app state (similar to Hydra's loadState)
+            if let Err(e) = setup::initialize_app(app.handle()) {
+                eprintln!("Failed to initialize app: {}", e);
+                // Don't prevent app from starting, just log the error
+            }
             Ok(())
+        })
+        .on_window_event(|_window, event| {
+            // Handle window close event for cleanup
+            if let tauri::WindowEvent::Destroyed = event {
+                if let Err(e) = setup::cleanup_app() {
+                    eprintln!("Failed to cleanup app: {}", e);
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-
-    // Cleanup: Shutdown aria2c when app exits
-    if let Err(e) = aria2::shutdown() {
-        eprintln!("Failed to shutdown aria2c: {}", e);
-    }
 }

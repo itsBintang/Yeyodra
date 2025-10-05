@@ -69,9 +69,10 @@
       "filter_count": "{{filterCount}} tersedia",
       "search": "Cari"
     },
-    "game_details": {
-      "download": "Unduh",
-      "downloading": "Mengunduh...",
+  "game_details": {
+    "download": "Unduh",
+    "play": "Mainkan",
+    "downloading": "Mengunduh...",
       "download_options": "Opsi unduhan tersedia",
       "download_options_description": "Pilih cara Anda ingin mengunduh game ini",
       "download_steamtools": "Unduh SteamTools",
@@ -91,6 +92,8 @@
       "stats": "Statistik",
       "download_count": "Jumlah unduhan",
       "player_count": "Jumlah pemain",
+      "achievements_count": "Pencapaian ({{unlockedCount}}/{{achievementsCount}})",
+      "see_all_achievements": "Lihat semua pencapaian",
       "requirements": "Spesifikasi sistem",
       "minimum": "Minimum",
       "recommended": "Rekomendasi",
@@ -182,8 +185,16 @@
     "sort_by": "Urutkan berdasarkan",
     "played_recently": "Baru dimainkan",
     "playtime": "Waktu bermain",
-    "amount_minutes": "{{amount}} menit",
-    "amount_hours": "{{amount}} jam"
+      "amount_minutes": "{{amount}} menit",
+      "amount_hours": "{{amount}} jam"
+  },
+  "achievements": {
+    "achievements_unlocked": "Pencapaian Terbuka",
+    "no_achievements_title": "Tidak ada pencapaian tersedia",
+    "no_achievements_description": "Game ini tidak memiliki pencapaian",
+    "back_to_game": "Kembali ke Game",
+    "hidden_achievement": "Pencapaian Tersembunyi",
+    "hidden_achievement_description": "Pencapaian ini tersembunyi"
   }
 }
   

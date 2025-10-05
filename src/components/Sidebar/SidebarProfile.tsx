@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { initializeDefaultUser } from "@/features/userSlice";
+import { loadUserProfile } from "@/features/userSlice";
 import { Avatar } from "@/components";
 import "./SidebarProfile.scss";
 
@@ -11,12 +11,14 @@ export function SidebarProfile() {
   const { t } = useTranslation("sidebar");
   const dispatch = useAppDispatch();
   
-  const { userProfile } = useAppSelector((state) => state.user);
+  const { userProfile, isInitialized } = useAppSelector((state) => state.user);
 
-  // Initialize default user on mount
+  // Load user profile from backend on mount
   useEffect(() => {
-    dispatch(initializeDefaultUser());
-  }, [dispatch]);
+    if (!isInitialized) {
+      dispatch(loadUserProfile());
+    }
+  }, [dispatch, isInitialized]);
 
   const handleProfileClick = () => {
     if (!userProfile) return;
