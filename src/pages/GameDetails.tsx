@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { GameDetailsProvider, useGameDetails } from "@/contexts/game-details";
 import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
-import { GameOptionsModal, DownloadModal } from "@/components";
+import { GameOptionsModal, DownloadModal, DlcManager } from "@/components";
+import { UnlockIcon } from "@primer/octicons-react";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
@@ -12,10 +14,15 @@ import "./GameDetails.scss";
 function GameDetailsContent() {
   const { shopDetails, stats, isLoading, game, repacks, achievements, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
   const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
+  const [showDlcManager, setShowDlcManager] = useState(false);
 
   const handleCloudSaveClick = () => {
     // TODO: Implement cloud save modal
     console.log("Cloud save clicked");
+  };
+
+  const handleManageDlcs = () => {
+    setShowDlcManager(true);
   };
 
   if (isLoading) {
@@ -116,6 +123,16 @@ function GameDetailsContent() {
                 )}
 
                 <div className="game-details__hero-buttons game-details__hero-buttons--right">
+                  {game && (
+                    <button
+                      type="button"
+                      className="game-details__dlc-button"
+                      onClick={handleManageDlcs}
+                    >
+                      <UnlockIcon size={20} />
+                      DLC Unlocker
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="game-details__cloud-sync-button"
@@ -183,6 +200,16 @@ function GameDetailsContent() {
         hasRepacks={repacks && repacks.length > 0}
         onDownloadComplete={updateGame}
       />
+
+      {game && (
+        <DlcManager
+          visible={showDlcManager}
+          onClose={() => setShowDlcManager(false)}
+          appId={objectId || ""}
+          gameName={shopDetails?.name || ""}
+          gameLogoUrl={game.logoImageUrl || undefined}
+        />
+      )}
     </>
   );
 }

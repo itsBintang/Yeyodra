@@ -416,3 +416,236 @@ pub async fn remove_game_files(app_id: &str) -> Result<DownloadResult> {
     }
 }
 
+// ============================================
+// DLC MANAGER FUNCTIONS
+// ============================================
+
+use once_cell::sync::Lazy;
+
+// Pre-compiled regex for better performance
+static ADDAPPID_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"addappid\s*\(\s*(\d+)\s*\)").expect("Invalid regex pattern")
+});
+
+/// Get list of DLC IDs for a game from Steam API
+pub async fn get_game_dlc_list(app_id: &str) -> Result<Vec<String>> {
+    println!("Fetching DLC list for AppID: {}", app_id);
+    
+    let url = format!(
+        "https://store.steampowered.com/api/appdetails?appids={}&l=english",
+        app_id
+    );
+    
+    let response = HTTP_CLIENT
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| anyhow!("Failed to fetch from Steam API: {}", e))?;
+    
+    if !response.status().is_success() {
+        return Err(anyhow!("Steam API returned status {}", response.status()));
+    }
+    
+    let json: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| anyhow!("Failed to parse response: {}", e))?;
+    
+    // Extract DLC array from Steam API response
+    let dlc_list = json
+        .get(app_id)
+        .and_then(|v| v.get("data"))
+        .and_then(|v| v.get("dlc"))
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_u64())
+                .map(|id| id.to_string())
+                .collect::<Vec<String>>()
+        })
+        .unwrap_or_default();
+    
+    println!("Found {} DLCs for AppID: {}", dlc_list.len(), app_id);
+    
+    Ok(dlc_list)
+}
+
+/// Get basic DLC info (name and image) from Steam API
+pub async fn get_dlc_info(app_id: &str) -> Result<(String, String)> {
+    let url = format!(
+        "https://store.steampowered.com/api/appdetails?appids={}&l=english",
+        app_id
+    );
+    
+    let response = HTTP_CLIENT
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| anyhow!("Failed to fetch DLC info: {}", e))?;
+    
+    if !response.status().is_success() {
+        // Return default values if failed
+        return Ok((
+            format!("DLC {}", app_id),
+            format!("https://cdn.cloudflare.steamstatic.com/steam/apps/{}/header.jpg", app_id)
+        ));
+    }
+    
+    let json: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| anyhow!("Failed to parse response: {}", e))?;
+    
+    let name = json
+        .get(app_id)
+        .and_then(|v| v.get("data"))
+        .and_then(|v| v.get("name"))
+        .and_then(|v| v.as_str())
+        .unwrap_or(&format!("DLC {}", app_id))
+        .to_string();
+    
+    let header_image = json
+        .get(app_id)
+        .and_then(|v| v.get("data"))
+        .and_then(|v| v.get("header_image"))
+        .and_then(|v| v.as_str())
+        .unwrap_or(&format!("https://cdn.cloudflare.steamstatic.com/steam/apps/{}/header.jpg", app_id))
+        .to_string();
+    
+    Ok((name, header_image))
+}
+
+/// Batch fetch DLC details (with rate limiting)
+pub async fn batch_fetch_dlc_details(dlc_ids: Vec<String>) -> Result<Vec<(String, String, String)>> {
+    use futures::stream::{self, StreamExt};
+    
+    println!("Batch fetching details for {} DLCs", dlc_ids.len());
+    
+    let results: Vec<_> = stream::iter(dlc_ids)
+        .map(|app_id| async move {
+            // Small delay to avoid rate limiting
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            
+            match get_dlc_info(&app_id).await {
+                Ok((name, image)) => Some((app_id, name, image)),
+                Err(e) => {
+                    eprintln!("Failed to fetch DLC {}: {}", app_id, e);
+                    // Return default values
+                    Some((
+                        app_id.clone(),
+                        format!("DLC {}", app_id),
+                        format!("https://cdn.cloudflare.steamstatic.com/steam/apps/{}/header.jpg", app_id)
+                    ))
+                }
+            }
+        })
+        .buffer_unordered(5) // Process 5 at a time
+        .collect()
+        .await;
+    
+    let dlc_details: Vec<_> = results.into_iter().flatten().collect();
+    
+    println!("Successfully fetched {} DLC details", dlc_details.len());
+    
+    Ok(dlc_details)
+}
+
+/// Get installed DLCs from .lua file
+pub fn get_installed_dlcs(app_id: &str) -> Result<Vec<String>> {
+    let steam_config_path = find_steam_config_path()?;
+    let stplugin_dir = steam_config_path.join("stplug-in");
+    let lua_file_path = stplugin_dir.join(format!("{}.lua", app_id));
+    
+    if !lua_file_path.exists() {
+        return Ok(Vec::new());
+    }
+    
+    let content = fs::read_to_string(&lua_file_path)
+        .map_err(|e| anyhow!("Failed to read lua file: {}", e))?;
+    
+    // Parse addappid() calls using pre-compiled regex
+    let installed_dlcs: Vec<String> = ADDAPPID_REGEX
+        .captures_iter(&content)
+        .map(|cap| cap[1].to_string())
+        .filter(|id| id != app_id) // Exclude main game ID
+        .collect();
+    
+    Ok(installed_dlcs)
+}
+
+/// Sync DLC selection to .lua file
+pub fn sync_dlcs_to_lua(
+    main_app_id: &str,
+    dlc_ids_to_set: Vec<String>,
+) -> Result<String> {
+    let steam_config_path = find_steam_config_path()?;
+    let stplugin_dir = steam_config_path.join("stplug-in");
+    
+    // Create directory if it doesn't exist
+    fs::create_dir_all(&stplugin_dir)
+        .map_err(|e| anyhow!("Failed to create stplug-in directory: {}", e))?;
+    
+    let lua_file_path = stplugin_dir.join(format!("{}.lua", main_app_id));
+    
+    // Read existing content if file exists
+    let old_dlcs = if lua_file_path.exists() {
+        get_installed_dlcs(main_app_id).unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+    
+    // Calculate changes
+    let added: Vec<_> = dlc_ids_to_set
+        .iter()
+        .filter(|id| !old_dlcs.contains(id))
+        .collect();
+    
+    let removed: Vec<_> = old_dlcs
+        .iter()
+        .filter(|id| !dlc_ids_to_set.contains(id))
+        .collect();
+    
+    // Build new content
+    let mut new_content = String::with_capacity(50 + (dlc_ids_to_set.len() * 20));
+    
+    // Add main game ID
+    new_content.push_str(&format!("addappid({})\n", main_app_id));
+    
+    // Add DLCs if any selected
+    if !dlc_ids_to_set.is_empty() {
+        new_content.push_str("\n-- DLCs managed by Chaos --\n");
+        for dlc_id in &dlc_ids_to_set {
+            new_content.push_str(&format!("addappid({})\n", dlc_id));
+        }
+    }
+    
+    // Write to file
+    fs::write(&lua_file_path, new_content)
+        .map_err(|e| anyhow!("Failed to write lua file: {}", e))?;
+    
+    // Generate success message
+    let message = match (added.len(), removed.len()) {
+        (0, 0) => "No changes made to DLCs".to_string(),
+        (added, 0) if added > 0 => format!(
+            "Successfully unlocked {} DLC{}",
+            added,
+            if added == 1 { "" } else { "s" }
+        ),
+        (0, removed) if removed > 0 => format!(
+            "Successfully removed {} DLC{}",
+            removed,
+            if removed == 1 { "" } else { "s" }
+        ),
+        (added, removed) => format!(
+            "Successfully unlocked {} and removed {} DLC{}",
+            added,
+            removed,
+            if added + removed == 1 { "" } else { "s" }
+        ),
+    };
+    
+    println!("DLC sync completed for game {}: {}", main_app_id, message);
+    
+    Ok(message)
+}
+

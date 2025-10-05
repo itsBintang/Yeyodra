@@ -13,7 +13,7 @@ import "./Achievements.scss";
 function AchievementsContent() {
   const { t } = useTranslation("achievements");
   const dispatch = useAppDispatch();
-  const { shopDetails, achievements, isLoading } = useGameDetails();
+  const { shopDetails, achievements, isLoading, game } = useGameDetails();
   const { shop, objectId, title } = useParams<{ shop: string; objectId: string; title: string }>();
 
   useEffect(() => {
@@ -51,8 +51,11 @@ function AchievementsContent() {
     );
   }
 
-  const heroImage = shopDetails?.assets?.libraryHeroImageUrl || shopDetails?.header_image || "";
-  const logoImage = shopDetails?.assets?.logoImageUrl || shopDetails?.capsule_image || "";
+  // Use standard Steam URLs like in library JSON
+  const heroImage = shopDetails?.header_image || "";
+  const logoImage = objectId 
+    ? `https://shared.steamstatic.com/store_item_assets/steam/apps/${objectId}/logo.png`
+    : (shopDetails?.capsule_image || "");
 
   return (
     <div className="achievements">
@@ -81,6 +84,21 @@ function AchievementsContent() {
                 <h1 className="achievements__hero-title">{title}</h1>
               )}
             </Link>
+          </div>
+          <div className="achievements__hero-playtime">
+            {game ? (
+              game.playTimeInSeconds === 0 ? (
+                <p>{t("not_played_yet", { title: game.title || title })}</p>
+              ) : (
+                <p>
+                  {t("play_time", {
+                    amount: `${Math.floor(game.playTimeInSeconds / 3600)} ${t("hours")}`,
+                  })}
+                </p>
+              )
+            ) : (
+              <p>{t("not_played_yet", { title: title })}</p>
+            )}
           </div>
         </div>
 

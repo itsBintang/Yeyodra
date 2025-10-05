@@ -1,0 +1,531 @@
+@use "../../scss/globals.scss";
+
+// DLC Manager Overlay
+.dlc-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// DLC Manager Modal
+.dlc-manager-modal {
+  background-color: globals.$background-color;
+  border: 1px solid globals.$border-color;
+  border-radius: 8px;
+  box-shadow: 0px 0px 25px 0px rgba(0, 0, 0, 0.9);
+  width: 70%;
+  max-width: 900px;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Header
+.dlc-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: globals.$spacing-unit * 1.5 globals.$spacing-unit * 2;
+  border-bottom: 1px solid globals.$border-color;
+}
+
+.dlc-manager-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: globals.$muted-color;
+  margin: 0;
+}
+
+.dlc-close-btn {
+  background: transparent;
+  border: none;
+  color: globals.$muted-color;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    color: globals.$color-text;
+  }
+
+  &:disabled {
+    opacity: globals.$disabled-opacity;
+    cursor: not-allowed;
+  }
+}
+
+// Game Info Section
+.dlc-game-info {
+  display: flex;
+  padding: globals.$spacing-unit * 2 globals.$spacing-unit * 2;
+  border-bottom: 1px solid globals.$border-color;
+  background: transparent;
+}
+
+.dlc-game-header {
+  display: flex;
+  align-items: center;
+  gap: globals.$spacing-unit * 1.5;
+  width: 100%;
+}
+
+.dlc-game-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.dlc-game-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: globals.$color-text;
+  margin: 0;
+  flex: 1;
+}
+
+// Unlock Method Section
+.dlc-unlock-method {
+  padding: globals.$spacing-unit * 1.5 globals.$spacing-unit * 2;
+  border-bottom: 1px solid globals.$border-color;
+  background: transparent;
+}
+
+.dlc-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: globals.$muted-color;
+  margin: 0 0 globals.$spacing-unit 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.dlc-method-tabs {
+  display: flex;
+  gap: globals.$spacing-unit;
+  margin-bottom: globals.$spacing-unit;
+}
+
+.dlc-method-tab {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid globals.$border-color;
+  border-radius: 6px;
+  color: globals.$body-color;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: globals.$color-text;
+  }
+
+  &:disabled {
+    opacity: globals.$disabled-opacity;
+    cursor: not-allowed;
+  }
+}
+
+.dlc-method-description {
+  font-size: 11px;
+  color: globals.$body-color;
+  margin: 0;
+  line-height: 1.2;
+  opacity: 0.7;
+}
+
+// Content
+.dlc-manager-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: globals.$spacing-unit * 1.5 globals.$spacing-unit * 2;
+
+  &::-webkit-scrollbar {
+    width: 9px;
+    background-color: globals.$dark-background-color;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+// Loading State
+.dlc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.08);
+    border-top-color: globals.$brand-teal;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  p {
+    margin-top: globals.$spacing-unit * 2;
+    color: globals.$body-color;
+    font-size: 14px;
+  }
+}
+
+// Error State
+.dlc-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  
+  p {
+    color: globals.$error-color;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+// Action Bar
+.dlc-actions-bar {
+  display: flex;
+  gap: globals.$spacing-unit;
+  margin-bottom: globals.$spacing-unit * 1.5;
+  flex-wrap: wrap;
+}
+
+.dlc-action-btn {
+  padding: 6px 12px;
+  border: 1px solid globals.$border-color;
+  background: transparent;
+  color: globals.$body-color;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &:active:not(:disabled) {
+    opacity: globals.$active-opacity;
+  }
+
+  &:disabled {
+    opacity: globals.$disabled-opacity;
+    cursor: not-allowed;
+  }
+
+  &--unlock {
+    background: rgba(255, 255, 255, 0.08);
+    color: globals.$muted-color;
+    
+    &:not(:disabled) {
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: globals.$color-text;
+      }
+    }
+  }
+
+  &--remove {
+    background: globals.$danger-color;
+    border-color: transparent;
+    color: globals.$muted-color;
+
+    &:not(:disabled) {
+      &:hover {
+        background-color: #b3203f;
+      }
+    }
+  }
+}
+
+// DLC Grid - 2 Columns
+.dlc-grid {
+  display: grid;
+  gap: globals.$spacing-unit * 1.25;
+
+  &--two-column {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dlc-card {
+  position: relative;
+  background: globals.$dark-background-color;
+  border: 1px solid globals.$border-color;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// Selection Indicator - Top Left
+.dlc-selection-indicator {
+  position: absolute;
+  top: globals.$spacing-unit;
+  left: globals.$spacing-unit;
+  z-index: 3;
+}
+
+.dlc-check-icon {
+  width: 22px;
+  height: 22px;
+  background: globals.$success-color;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: globals.$color-text;
+
+  svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+.dlc-x-icon {
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid globals.$border-color;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: globals.$body-color;
+
+  svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+// CreamAPI Badge - Top Right
+.dlc-creamapi-badge {
+  position: absolute;
+  top: globals.$spacing-unit;
+  right: globals.$spacing-unit;
+  padding: 3px 7px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid globals.$border-color;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: globals.$body-color;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  svg {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  &.unlocked {
+    background: rgba(28, 151, 73, 0.25);
+    border-color: rgba(28, 151, 73, 0.5);
+    color: globals.$success-color;
+  }
+}
+
+// DLC Card Image
+.dlc-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 460 / 215;
+  overflow: hidden;
+  max-height: 140px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.dlc-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  pointer-events: none;
+}
+
+// DLC Card Info
+.dlc-card-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: globals.$spacing-unit globals.$spacing-unit * 1.25;
+  z-index: 2;
+}
+
+.dlc-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: globals.$color-text;
+  margin: 0 0 2px 0;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.dlc-card-id {
+  font-size: 10px;
+  color: globals.$body-color;
+  margin: 0;
+  font-family: monospace;
+  opacity: 0.7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+// Lock Icon - Bottom Right
+.dlc-lock-icon {
+  position: absolute;
+  bottom: globals.$spacing-unit * 1.25;
+  right: globals.$spacing-unit * 1.25;
+  width: 26px;
+  height: 26px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid globals.$border-color;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: globals.$body-color;
+  z-index: 2;
+
+  svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+// Responsive
+@media (max-width: 1200px) {
+  .dlc-grid--two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dlc-manager-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .dlc-game-info {
+    flex-direction: column;
+  }
+
+  .dlc-game-thumbnail {
+    width: 100%;
+  }
+
+  .dlc-actions-bar {
+    flex-direction: column;
+    
+    .dlc-action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

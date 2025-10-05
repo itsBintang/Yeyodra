@@ -5,7 +5,7 @@ import "./HeroPanel.scss";
 
 export function HeroPanel() {
   const { t } = useTranslation("game_details");
-  const { repacks, shopDetails } = useGameDetails();
+  const { repacks, shopDetails, game } = useGameDetails();
 
   const getInfo = () => {
     // For now, show repack info if available
@@ -21,12 +21,17 @@ export function HeroPanel() {
       );
     }
 
-    // Fallback: show short description or no downloads
-    if (shopDetails?.short_description) {
-      return <p>{shopDetails.short_description}</p>;
+    // Fallback: show "You haven't played {game name}"
+    if (game && game.playTimeInSeconds === 0) {
+      return <p>{t("not_played_yet", { title: shopDetails?.name || "" })}</p>;
     }
 
-    return <p>{t("no_downloads")}</p>;
+    if (game && game.playTimeInSeconds > 0) {
+      return <p>{t("play_time", { amount: `${Math.floor(game.playTimeInSeconds / 3600)} ${t("hours")}` })}</p>;
+    }
+
+    // If game not in library yet
+    return <p>{t("not_played_yet", { title: shopDetails?.name || "" })}</p>;
   };
 
   return (

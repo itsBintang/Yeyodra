@@ -135,6 +135,7 @@ $hero-height: 300px;
     }
   }
 
+  &__dlc-button,
   &__cloud-sync-button {
     padding: calc($spacing-unit * 1.5) calc($spacing-unit * 2);
     background-color: rgba(0, 0, 0, 0.6);
@@ -159,6 +160,13 @@ $hero-height: 300px;
 
     &:hover {
       background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  &__dlc-button {
+    svg {
+      width: 20px;
+      height: 20px;
     }
   }
 

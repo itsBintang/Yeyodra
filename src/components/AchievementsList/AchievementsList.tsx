@@ -18,7 +18,7 @@ export function AchievementsList({ achievements, maxDisplay = 4, shop, objectId,
     return null;
   }
 
-  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  // const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const displayAchievements = achievements.slice(0, maxDisplay);
 
   const formatUnlockTime = (unlockTime: number | null): string => {

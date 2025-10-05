@@ -42,6 +42,23 @@
     "search": "Search",
     "search_results": "Search results"
   },
+  "dlc": {
+    "title": "DLC Unlocker",
+    "loading": "Loading DLC information...",
+    "no_dlcs_available": "This game has no available DLCs",
+    "failed_to_load": "Failed to load DLC list: {{error}}",
+    "failed_to_save": "Failed to save DLC selection: {{error}}",
+    "unlock_method": "Unlock Method",
+    "lua_method": "Lua Method",
+    "creamapi_method": "CreamAPI Method",
+    "inject_description": "Inject addappid() calls into the game's Lua files",
+    "select_all": "Select All",
+    "select_none": "Select None",
+    "select_locked": "Select Locked",
+    "select_unlocked": "Select Unlocked",
+    "unlock_selected": "Unlock Selected",
+    "remove_selected": "Remove Selected"
+  },
   "home": {
     "featured": "Featured",
     "hot": "Hot now",
@@ -107,10 +124,14 @@
     "publisher": "Published by {{publisher}}",
     "video": "Video {{number}}",
     "screenshot": "Screenshot {{number}}",
+    "not_played_yet": "You haven't played {{title}}",
+    "play_time": "{{amount}}",
+    "hours": "hours",
     "previous_screenshot": "Previous",
     "next_screenshot": "Next",
     "open_screenshot": "Open screenshot {{number}}",
-    "cloud_save": "Cloud save"
+    "cloud_save": "Cloud save",
+    "update_game": "Update Game"
   },
   "settings": {
     "general": "General",
@@ -194,7 +215,10 @@
     "no_achievements_description": "This game doesn't have any achievements",
     "back_to_game": "Back to Game",
     "hidden_achievement": "Hidden Achievement",
-    "hidden_achievement_description": "This achievement is hidden"
+    "hidden_achievement_description": "This achievement is hidden",
+    "not_played_yet": "You haven't played {{title}}",
+    "play_time": "{{amount}}",
+    "hours": "hours"
   }
 }
 

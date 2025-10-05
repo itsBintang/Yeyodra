@@ -6,6 +6,8 @@ import { UserLibraryGameCard, SortOptions } from "@/components";
 import type { SortOption } from "@/components";
 import { TelescopeIcon } from "@primer/octicons-react";
 import type { UserStats } from "@/types";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import "./ProfileContent.scss";
 
 interface ProfileContentProps {
@@ -19,6 +21,7 @@ export function ProfileContent({ userId: _userId }: ProfileContentProps) {
   
   const { userProfile } = useAppSelector((state) => state.user);
   const library = useAppSelector((state) => state.library.games);
+  const isLoadingLibrary = useAppSelector((state) => state.library.isLoading);
 
   useEffect(() => {
     if (userProfile) {
@@ -89,9 +92,24 @@ export function ProfileContent({ userId: _userId }: ProfileContentProps) {
   return (
     <section className="profile-content__section">
       <div className="profile-content__main">
-        {hasGames && <SortOptions sortBy={sortBy} onSortChange={setSortBy} />}
+        {!isLoadingLibrary && hasGames && <SortOptions sortBy={sortBy} onSortChange={setSortBy} />}
 
-        {!hasGames && (
+        {isLoadingLibrary && (
+          <SkeletonTheme baseColor="#1c1c1c" highlightColor="#2a2a2a">
+            <div className="profile-content__section-header">
+              <Skeleton width={150} height={32} />
+            </div>
+            <ul className="profile-content__games-grid">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <li key={index} className="user-library-game__wrapper">
+                  <Skeleton height={200} borderRadius={4} />
+                </li>
+              ))}
+            </ul>
+          </SkeletonTheme>
+        )}
+
+        {!isLoadingLibrary && !hasGames && (
           <div className="profile-content__no-games">
             <div className="profile-content__telescope-icon">
               <TelescopeIcon size={24} />
@@ -101,7 +119,7 @@ export function ProfileContent({ userId: _userId }: ProfileContentProps) {
           </div>
         )}
 
-        {hasGames && (
+        {!isLoadingLibrary && hasGames && (
           <div>
             <div className="profile-content__section-header">
               <div className="profile-content__section-title-group">
@@ -121,7 +139,7 @@ export function ProfileContent({ userId: _userId }: ProfileContentProps) {
         )}
       </div>
 
-      {hasGames && (
+      {!isLoadingLibrary && hasGames && (
         <div className="profile-content__right-content">
           <div>
             <div className="profile-content__section-header">

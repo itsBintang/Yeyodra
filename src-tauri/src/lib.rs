@@ -8,6 +8,7 @@ mod steam_restart;
 mod setup;
 mod user_profile;
 mod achievements;
+mod dlc_cache;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -19,6 +20,7 @@ use steamtools::{download_steamtools, DownloadResult};
 use download_history::{CompletedDownload, save_completed_download, get_download_history, remove_from_history, clear_history};
 use steam_restart::restart_steam;
 use achievements::get_game_achievements as get_achievements;
+use dlc_cache::{DlcInfo, DlcCacheData, get_cached_dlc_data, save_dlc_cache_data, is_dlc_cache_valid};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -315,6 +317,75 @@ async fn get_game_achievements_command(
     get_achievements(app_handle, shop, object_id, language).await
 }
 
+// DLC Commands
+#[tauri::command]
+async fn get_game_dlcs_with_cache(
+    app_handle: tauri::AppHandle,
+    app_id: String,
+) -> Result<Vec<DlcInfo>, String> {
+    // Try to get cached data first
+    if let Ok(Some(cache_data)) = get_cached_dlc_data(&app_handle, &app_id) {
+        if is_dlc_cache_valid(&cache_data) {
+            println!("Using cached DLC data for AppID: {}", app_id);
+            return Ok(cache_data.dlc_list);
+        }
+    }
+    
+    // Cache miss or expired - fetch from API
+    println!("Fetching fresh DLC data for AppID: {}", app_id);
+    
+    // Get DLC IDs from Steam API
+    let dlc_ids = steamtools::get_game_dlc_list(&app_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    if dlc_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    
+    // Batch fetch DLC details
+    let dlc_details = steamtools::batch_fetch_dlc_details(dlc_ids)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    // Convert to DlcInfo format
+    let dlc_list: Vec<DlcInfo> = dlc_details
+        .into_iter()
+        .map(|(app_id, name, header_image)| DlcInfo {
+            app_id,
+            name,
+            header_image,
+        })
+        .collect();
+    
+    // Save to cache
+    let cache_data = DlcCacheData {
+        main_app_id: app_id.clone(),
+        dlc_list: dlc_list.clone(),
+        updated_at: chrono::Utc::now().timestamp(),
+    };
+    
+    if let Err(e) = save_dlc_cache_data(&app_handle, &app_id, cache_data) {
+        eprintln!("Failed to save DLC cache: {}", e);
+        // Don't fail the request, just log the error
+    }
+    
+    Ok(dlc_list)
+}
+
+#[tauri::command]
+fn get_installed_dlc_list(app_id: String) -> Result<Vec<String>, String> {
+    steamtools::get_installed_dlcs(&app_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn sync_dlc_selection(
+    app_id: String,
+    selected_dlc_ids: Vec<String>,
+) -> Result<String, String> {
+    steamtools::sync_dlcs_to_lua(&app_id, selected_dlc_ids).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -353,7 +424,10 @@ pub fn run() {
             get_user_profile,
             save_user_profile_data,
             update_user_profile_data,
-            get_game_achievements_command
+            get_game_achievements_command,
+            get_game_dlcs_with_cache,
+            get_installed_dlc_list,
+            sync_dlc_selection
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

@@ -34,14 +34,31 @@
       "steam_restart_failed": "Restart Steam Gagal",
       "failed_to_restart_steam": "Gagal merestart Steam"
     },
-    "header": {
-      "home": "Beranda",
-      "catalogue": "Katalog",
-      "downloads": "Unduhan",
-      "settings": "Pengaturan",
-      "search": "Cari",
-      "search_results": "Hasil pencarian"
-    },
+  "header": {
+    "home": "Beranda",
+    "catalogue": "Katalog",
+    "downloads": "Unduhan",
+    "settings": "Pengaturan",
+    "search": "Cari",
+    "search_results": "Hasil pencarian"
+  },
+  "dlc": {
+    "title": "Pembuka DLC",
+    "loading": "Memuat informasi DLC...",
+    "no_dlcs_available": "Game ini tidak memiliki DLC yang tersedia",
+    "failed_to_load": "Gagal memuat daftar DLC: {{error}}",
+    "failed_to_save": "Gagal menyimpan pilihan DLC: {{error}}",
+    "unlock_method": "Metode Unlock",
+    "lua_method": "Metode Lua",
+    "creamapi_method": "Metode CreamAPI",
+    "inject_description": "Inject panggilan addappid() ke file Lua game",
+    "select_all": "Pilih Semua",
+    "select_none": "Kosongkan Pilihan",
+    "select_locked": "Pilih Terkunci",
+    "select_unlocked": "Pilih Terbuka",
+    "unlock_selected": "Buka Kunci Pilihan",
+    "remove_selected": "Hapus Pilihan"
+  },
     "home": {
       "featured": "Unggulan",
       "hot": "Sedang populer",
@@ -107,10 +124,14 @@
       "publisher": "Diterbitkan oleh {{publisher}}",
       "video": "Video {{number}}",
       "screenshot": "Tangkapan layar {{number}}",
+      "not_played_yet": "Anda belum memainkan {{title}}",
+      "play_time": "{{amount}}",
+      "hours": "jam",
       "previous_screenshot": "Sebelumnya",
       "next_screenshot": "Berikutnya",
       "open_screenshot": "Buka tangkapan layar {{number}}",
-      "cloud_save": "Simpan di cloud"
+      "cloud_save": "Simpan di cloud",
+      "update_game": "Perbarui Game"
     },
   "settings": {
     "general": "Umum",
@@ -194,7 +215,10 @@
     "no_achievements_description": "Game ini tidak memiliki pencapaian",
     "back_to_game": "Kembali ke Game",
     "hidden_achievement": "Pencapaian Tersembunyi",
-    "hidden_achievement_description": "Pencapaian ini tersembunyi"
+    "hidden_achievement_description": "Pencapaian ini tersembunyi",
+    "not_played_yet": "Anda belum memainkan {{title}}",
+    "play_time": "{{amount}}",
+    "hours": "jam"
   }
 }
   

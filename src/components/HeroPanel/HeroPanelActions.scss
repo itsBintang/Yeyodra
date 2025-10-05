@@ -3,8 +3,34 @@
 .hero-panel-actions {
   &__container {
     display: flex;
-    gap: calc($spacing-unit * 2);
+    gap: $spacing-unit;
     align-items: center;
+  }
+
+  // Integrated wrapper for main button + icon filters
+  &__integrated-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  &__main-button {
+    display: flex;
+  }
+
+  &__primary-btn {
+    min-width: 140px;
+    white-space: nowrap;
+    border: none !important;
+    
+    &:hover {
+      border: none !important;
+    }
   }
 
   &__action {
@@ -31,11 +57,111 @@
     }
   }
 
+  &__secondary-group {
+    display: flex;
+    gap: $spacing-unit;
+    align-items: center;
+  }
+
   &__separator {
     width: 1px;
     height: 24px;
     background-color: $border-color;
     opacity: 0.2;
   }
-}
 
+  // Icon Button Group
+  &__icon-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  &__icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: $body-color;
+    padding: 0;
+    position: relative;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      opacity: $active-opacity;
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: $disabled-opacity;
+      cursor: not-allowed;
+    }
+
+    // Active state - highlighted with bottom indicator
+    &.active {
+      background: rgba(255, 255, 255, 0.12);
+      
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        border-radius: 2px;
+      }
+
+      &.hero-panel-actions__icon-btn--sync::after {
+        background: #4ade80;
+      }
+
+      &.hero-panel-actions__icon-btn--upload::after {
+        background: #60a5fa;
+      }
+
+      &.hero-panel-actions__icon-btn--tools::after {
+        background: #fb923c;
+      }
+
+      &.hero-panel-actions__icon-btn--iterations::after {
+        background: #c084fc;
+      }
+    }
+
+    // Individual icon colors matching reference
+    &--sync {
+      svg {
+        color: #4ade80; // Green
+      }
+    }
+
+    &--upload {
+      svg {
+        color: #60a5fa; // Blue
+      }
+    }
+
+    &--tools {
+      svg {
+        color: #fb923c; // Orange
+      }
+    }
+
+    &--iterations {
+      svg {
+        color: #c084fc; // Purple
+      }
+    }
+  }
+}
