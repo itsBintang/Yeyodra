@@ -6,6 +6,7 @@ import { routes } from "./routes";
 import { SidebarProfile } from "./SidebarProfile";
 import { TextField } from "../TextField/TextField";
 import { SteamRestartButton } from "../SteamRestartButton/SteamRestartButton";
+import { AddCustomGameModal } from "../AddCustomGameModal/AddCustomGameModal";
 import { useLibrary } from "@/hooks";
 import type { LibraryGame } from "@/types";
 import "./Sidebar.scss";
@@ -31,6 +32,7 @@ export function Sidebar() {
   );
   const [filteredLibrary, setFilteredLibrary] = useState<LibraryGame[]>([]);
   const [showPlayableOnly, setShowPlayableOnly] = useState(false);
+  const [showAddGameModal, setShowAddGameModal] = useState(false);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const cursorPos = useRef({ x: 0 });
@@ -68,8 +70,11 @@ export function Sidebar() {
   };
 
   const handleAddGameButtonClick = () => {
-    // TODO: Implement add custom game modal
-    console.log("Add custom game");
+    setShowAddGameModal(true);
+  };
+
+  const handleCloseAddGameModal = () => {
+    setShowAddGameModal(false);
   };
 
   const handleMouseDown: React.MouseEventHandler<HTMLButtonElement> = (
@@ -250,6 +255,11 @@ export function Sidebar() {
         type="button"
         className="sidebar__handle"
         onMouseDown={handleMouseDown}
+      />
+      
+      <AddCustomGameModal
+        visible={showAddGameModal}
+        onClose={handleCloseAddGameModal}
       />
     </aside>
   );

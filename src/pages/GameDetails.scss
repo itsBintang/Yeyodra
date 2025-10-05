@@ -97,6 +97,20 @@ $hero-height: 300px;
     }
   }
 
+  &__hero-placeholder {
+    width: 100%;
+    height: calc($hero-height + 72px);
+    min-height: calc($hero-height + 72px);
+    position: absolute;
+    z-index: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+
+    @media (min-width: 1250px) {
+      height: calc(350px + 72px);
+      min-height: calc(350px + 72px);
+    }
+  }
+
   &__game-logo {
     width: 200px;
     align-self: flex-end;

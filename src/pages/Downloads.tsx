@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { useDownload } from "@/hooks";
+import { useDownload, useToast, useLibrary } from "@/hooks";
 import { Download, CompletedDownload } from "@/types";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge } from "@/components";
 import { 
@@ -9,7 +9,9 @@ import {
   TrashIcon,
   PlayIcon,
   ColumnsIcon,
-  XCircleIcon
+  XCircleIcon,
+  KebabHorizontalIcon,
+  SyncIcon
 } from "@primer/octicons-react";
 import "./Downloads.scss";
 
@@ -110,6 +112,11 @@ function CompletedDownloadItem({
   onRemove: (appId: string, downloadType: string) => void;
 }) {
   const { t } = useTranslation("downloads");
+  const { showSuccessToast, showErrorToast } = useToast();
+  const { updateLibrary } = useLibrary();
+  const [showMenu, setShowMenu] = useState(false);
+  const [isRedownloading, setIsRedownloading] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -120,6 +127,121 @@ function CompletedDownloadItem({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
+
+  const handleDelete = () => {
+    setShowMenu(false);
+    onRemove(download.appId, download.downloadType);
+  };
+
+  const handleRedownload = async () => {
+    setShowMenu(false);
+    setIsRedownloading(true);
+
+    try {
+      // First, ensure game is in library
+      let gameInLibrary = false;
+      try {
+        const libraryGame = await invoke("get_library_game", {
+          shop: "steam",
+          objectId: download.appId
+        });
+        gameInLibrary = !!libraryGame;
+      } catch (error) {
+        gameInLibrary = false;
+      }
+
+      if (!gameInLibrary) {
+        // Add game to library first
+        await invoke("add_game_to_library", {
+          shop: "steam",
+          objectId: download.appId,
+          title: download.title
+        });
+        
+        // Fetch and save shop assets (icon, cover, hero image, logo) for library display
+        try {
+          const shopDetails = await invoke("get_game_shop_details", {
+            objectId: download.appId,
+            language: "en"
+          });
+          
+          await invoke("save_game_shop_assets", {
+            shop: "steam",
+            objectId: download.appId,
+            assets: shopDetails
+          });
+        } catch (error) {
+          console.error("Failed to fetch/save assets:", error);
+          // Fallback: use iconUrl from download history if available
+          if (download.iconUrl) {
+            try {
+              await invoke("save_game_shop_assets", {
+                shop: "steam",
+                objectId: download.appId,
+                assets: {
+                  iconUrl: download.iconUrl
+                }
+              });
+            } catch (e) {
+              console.error("Failed to save fallback icon:", e);
+            }
+          }
+        }
+        
+        // Refresh library to show the new game in sidebar
+        await updateLibrary();
+        
+        // Small delay to ensure library is updated
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      // Now start download
+      const result = await invoke<{ success: boolean; message: string }>(
+        "download_game_steamtools",
+        { 
+          appId: download.appId,
+          gameTitle: download.title,
+          iconUrl: download.iconUrl
+        }
+      );
+
+      if (result.success) {
+        showSuccessToast(
+          "Redownload Started",
+          `${download.title} is now downloading. It will appear in your library when complete.`,
+          4000
+        );
+      } else {
+        showErrorToast("Redownload Failed", result.message, 5000);
+      }
+    } catch (error) {
+      console.error("Failed to redownload:", error);
+      showErrorToast(
+        "Redownload Failed",
+        typeof error === "string" ? error : "An error occurred while starting the redownload",
+        5000
+      );
+    } finally {
+      setIsRedownloading(false);
+    }
   };
 
   return (
@@ -147,13 +269,36 @@ function CompletedDownloadItem({
         </div>
 
         <div className="download-item__actions">
-          <button
-            onClick={() => onRemove(download.appId, download.downloadType)}
-            className="download-item__action-btn download-item__action-btn--danger"
-            title={t("delete")}
-          >
-            <TrashIcon />
-          </button>
+          <div className="download-item__menu-container" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="download-item__action-btn"
+              title={t("options")}
+            >
+              <KebabHorizontalIcon />
+            </button>
+
+            {showMenu && (
+              <div className="download-item__dropdown">
+                <button
+                  onClick={handleRedownload}
+                  className="download-item__dropdown-item"
+                  disabled={isRedownloading}
+                >
+                  <SyncIcon size={16} />
+                  <span>{isRedownloading ? t("downloading") : t("redownload")}</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="download-item__dropdown-item download-item__dropdown-item--danger"
+                  disabled={isRedownloading}
+                >
+                  <TrashIcon size={16} />
+                  <span>{t("delete")}</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

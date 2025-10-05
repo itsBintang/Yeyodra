@@ -14,6 +14,7 @@
       "downloads": "Unduhan",
       "settings": "Pengaturan",
       "my_library": "Perpustakaan saya",
+      "add_custom_game_tooltip": "Tambah game kustom",
       "favorites": "Favorit",
       "sign_in": "Masuk",
       "friends": "Teman",
@@ -90,18 +91,17 @@
     "download": "Unduh",
     "play": "Mainkan",
     "downloading": "Mengunduh...",
-      "download_options": "Opsi unduhan tersedia",
-      "download_options_description": "Pilih cara Anda ingin mengunduh game ini",
-      "download_steamtools": "Unduh SteamTools",
-      "steamtools_info_title": "Apa itu SteamTools?",
-      "steamtools_info_description": "SteamTools secara otomatis mengunduh dan menginstal file yang diperlukan untuk membuka game Steam. Ini akan menyuntikkan file game ke direktori Steam Anda.",
-      "steamtools_disabled_warning": "SteamTools saat ini dinonaktifkan. Aktifkan di Settings > Sumber unduhan untuk menggunakan fitur ini.",
-      "disabled": "Dinonaktifkan",
-      "or": "atau",
-      "download_from_repacks": "Unduh dari Repack",
-      "repacks_description": "Unduh file game dari repack komunitas (ukuran file lebih kecil, sudah dikonfigurasi).",
+    "download_options": "Opsi unduhan tersedia",
+    "download_options_description": "Pilih cara Anda ingin mengunduh game ini",
+    "download_steamtools": "Unduh SteamTools",
+    "steamtools_info_title": "Apa itu SteamTools?",
+    "steamtools_info_description": "SteamTools secara otomatis mengunduh dan menginstal file yang diperlukan untuk membuka game Steam. Ini akan menyuntikkan file game ke direktori Steam Anda.",
+    "steamtools_disabled_warning": "SteamTools saat ini dinonaktifkan. Aktifkan di Settings > Sumber unduhan untuk menggunakan fitur ini.",
+    "disabled": "Dinonaktifkan",
+    "or": "atau",
+    "download_from_repacks": "Unduh dari Repack",
+    "repacks_description": "Unduh file game dari repack komunitas (ukuran file lebih kecil, sudah dikonfigurasi).",
     "browse_repacks": "Jelajahi Repack",
-    "downloading": "Mengunduh...",
     "download_success": "Unduhan selesai dengan sukses",
     "download_failed": "Unduhan gagal",
     "add_to_library": "Tambahkan ke perpustakaan",
@@ -131,7 +131,9 @@
       "next_screenshot": "Berikutnya",
       "open_screenshot": "Buka tangkapan layar {{number}}",
       "cloud_save": "Simpan di cloud",
-      "update_game": "Perbarui Game"
+      "update_game": "Auto Update",
+      "auto_update_enabled_title": "Auto-Update Diaktifkan",
+      "auto_update_enabled_message": "{{gameName}} sekarang dalam mode auto-update. Silakan restart Steam untuk menerapkan perubahan."
     },
   "settings": {
     "general": "Umum",
@@ -173,7 +175,9 @@
     "delete": "Hapus",
     "pause": "Jeda",
     "resume": "Lanjutkan",
-    "cancel": "Batal"
+    "cancel": "Batal",
+    "options": "Opsi",
+    "redownload": "Unduh Ulang"
   },
   "profile": {
     "library": "Perpustakaan",
@@ -219,6 +223,21 @@
     "not_played_yet": "Anda belum memainkan {{title}}",
     "play_time": "{{amount}}",
     "hours": "jam"
+  },
+  "add_custom_game": {
+    "title": "Tambah Game Kustom",
+    "description": "Tambahkan game yang tidak ada di katalog ke perpustakaan Anda",
+    "executable_path": "Path Executable",
+    "select_executable": "Pilih executable game...",
+    "browse": "Jelajah",
+    "game_title": "Judul Game",
+    "enter_title": "Masukkan judul game...",
+    "cancel": "Batal",
+    "add": "Tambah Game",
+    "adding": "Menambahkan...",
+    "fill_required": "Mohon isi semua field yang diperlukan",
+    "success": "Game kustom berhasil ditambahkan",
+    "failed": "Gagal menambahkan game kustom"
   }
 }
   

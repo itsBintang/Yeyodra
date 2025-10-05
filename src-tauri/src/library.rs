@@ -78,6 +78,57 @@ fn get_game_file_path(app_handle: &AppHandle, shop: &str, object_id: &str) -> Re
     Ok(library_dir.join(format!("{}.json", game_id)))
 }
 
+// Add a custom game to the library with executable path
+pub fn add_custom_game_to_library(
+    app_handle: &AppHandle,
+    title: String,
+    executable_path: String,
+) -> Result<LibraryGame, String> {
+    let shop = "custom".to_string();
+    let object_id = uuid::Uuid::new_v4().to_string();
+    
+    // Check if game with same executable already exists
+    let all_games = get_all_library_games(app_handle)?;
+    if let Some(existing) = all_games.iter().find(|g| {
+        g.executable_path.as_ref() == Some(&executable_path) && !g.is_deleted
+    }) {
+        return Err(format!("A game with this executable already exists: {}", existing.title));
+    }
+    
+    let game_path = get_game_file_path(app_handle, &shop, &object_id)?;
+    
+    let id = format!("{}_{}", shop, object_id);
+    
+    // Create the game
+    let game = LibraryGame {
+        id,
+        title: title.clone(),
+        object_id: object_id.clone(),
+        shop: shop.clone(),
+        icon_url: None,
+        cover_image_url: None,
+        library_hero_image_url: None,
+        logo_image_url: None,
+        play_time_in_seconds: 0,
+        last_time_played: None,
+        is_deleted: false,
+        favorite: false,
+        is_pinned: false,
+        executable_path: Some(executable_path),
+        launch_options: None,
+        is_installed: true, // Custom games are always "installed"
+    };
+    
+    // Save the game
+    let json = serde_json::to_string_pretty(&game)
+        .map_err(|e| format!("Failed to serialize game: {}", e))?;
+    
+    std::fs::write(&game_path, json)
+        .map_err(|e| format!("Failed to save game: {}", e))?;
+    
+    Ok(game)
+}
+
 pub fn add_game_to_library(
     app_handle: &AppHandle,
     shop: String,

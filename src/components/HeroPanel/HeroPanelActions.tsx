@@ -6,29 +6,42 @@ import {
   PlusCircleIcon,
   PlayIcon,
   SyncIcon,
-  UploadIcon,
   ToolsIcon,
-  IterationsIcon,
 } from "@primer/octicons-react";
 import { Button } from "@/components";
 import { useGameDetails } from "@/contexts/game-details";
-import { useLibrary } from "@/hooks";
+import { useLibrary, useToast } from "@/hooks";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { useParams } from "react-router-dom";
 import "./HeroPanelActions.scss";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-type ActionMode = "update" | "play" | "settings" | "other";
+type ActionMode = "update" | "play" | "settings";
 
 export function HeroPanelActions() {
   const { t } = useTranslation("game_details");
   const { game, shopDetails, updateGame, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
   const { updateLibrary } = useLibrary();
+  const { showSuccessToast, showErrorToast } = useToast();
   const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
   
   const [toggleLibraryGameDisabled, setToggleLibraryGameDisabled] = useState(false);
   const [activeMode, setActiveMode] = useState<ActionMode>("play");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Auto-switch mode based on executable availability
+  useEffect(() => {
+    if (game?.isInstalled) {
+      if (game.executablePath) {
+        // Switch to play mode when executable is set
+        setActiveMode("play");
+      } else if (activeMode === "play") {
+        // If play mode is active but no executable, switch to update mode
+        setActiveMode("update");
+      }
+    }
+  }, [game?.executablePath, game?.isInstalled]);
 
   const handleAddToLibrary = async () => {
     if (!shop || !objectId || !shopDetails?.name) return;
@@ -64,9 +77,76 @@ export function HeroPanelActions() {
     setShowDownloadModal(true);
   };
 
-  const handlePlayClick = () => {
-    // TODO: Implement game launch
-    console.log("Play clicked - Launch game");
+  const handleUpdateClick = async () => {
+    if (!objectId || !shopDetails?.name) return;
+    
+    setToggleLibraryGameDisabled(true);
+    setIsUpdating(true);
+    
+    // Add a small delay for better UX (loading animation)
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    try {
+      const message = await invoke<string>("enable_update_for_game", {
+        appId: objectId,
+      });
+      
+      console.log("[UpdateGame] Success:", message);
+      
+      showSuccessToast(
+        t("auto_update_enabled_title"),
+        t("auto_update_enabled_message", { gameName: shopDetails.name }),
+        5000
+      );
+    } catch (error) {
+      console.error("[UpdateGame] Failed:", error);
+      
+      showErrorToast(
+        "Failed to Enable Auto-Update",
+        typeof error === "string" ? error : "An error occurred while enabling auto-update",
+        5000
+      );
+    } finally {
+      setToggleLibraryGameDisabled(false);
+      setIsUpdating(false);
+    }
+  };
+
+  const handlePlayClick = async () => {
+    if (!game?.executablePath) {
+      showErrorToast(
+        "Cannot Play Game",
+        "No executable file selected. Please set the game executable in Options.",
+        5000
+      );
+      return;
+    }
+
+    setToggleLibraryGameDisabled(true);
+    
+    try {
+      const message = await invoke<string>("launch_game_executable", {
+        executablePath: game.executablePath,
+      });
+      
+      console.log("[LaunchGame] Success:", message);
+      
+      showSuccessToast(
+        "Game Launched",
+        message,
+        3000
+      );
+    } catch (error) {
+      console.error("[LaunchGame] Failed:", error);
+      
+      showErrorToast(
+        "Failed to Launch Game",
+        typeof error === "string" ? error : "An error occurred while launching the game",
+        5000
+      );
+    } finally {
+      setToggleLibraryGameDisabled(false);
+    }
   };
 
   const handleFavoriteClick = () => {
@@ -101,7 +181,7 @@ export function HeroPanelActions() {
         icon: <DownloadIcon />,
         label: t("download"),
         onClick: handleDownloadClick,
-        theme: "outline" as const,
+        theme: "primary" as const,
       };
     }
 
@@ -110,7 +190,7 @@ export function HeroPanelActions() {
         return {
           icon: <DownloadIcon />,
           label: t("update_game"),
-          onClick: handleDownloadClick,
+          onClick: handleUpdateClick,
           theme: "primary" as const,
         };
       case "play":
@@ -125,14 +205,7 @@ export function HeroPanelActions() {
           icon: <GearIcon />,
           label: t("options"),
           onClick: handleOptionsClick,
-          theme: "outline" as const,
-        };
-      case "other":
-        return {
-          icon: <HeartIcon />,
-          label: "Action",
-          onClick: handleFavoriteClick,
-          theme: "outline" as const,
+          theme: "primary" as const,
         };
     }
   };
@@ -164,7 +237,7 @@ export function HeroPanelActions() {
               <button
                 className={`hero-panel-actions__icon-btn hero-panel-actions__icon-btn--sync ${
                   activeMode === "update" ? "active" : ""
-                }`}
+                } ${isUpdating ? "scanning" : ""}`}
                 onClick={() => setActiveMode("update")}
                 disabled={toggleLibraryGameDisabled}
                 title={t("update_game")}
@@ -173,14 +246,14 @@ export function HeroPanelActions() {
               </button>
 
               <button
-                className={`hero-panel-actions__icon-btn hero-panel-actions__icon-btn--upload ${
+                className={`hero-panel-actions__icon-btn hero-panel-actions__icon-btn--play ${
                   activeMode === "play" ? "active" : ""
-                }`}
+                } ${!game.executablePath ? "disabled" : ""}`}
                 onClick={() => setActiveMode("play")}
-                disabled={toggleLibraryGameDisabled}
-                title={t("play")}
+                disabled={toggleLibraryGameDisabled || !game.executablePath}
+                title={game.executablePath ? t("play") : "No executable set"}
               >
-                <UploadIcon size={16} />
+                <PlayIcon size={16} />
               </button>
 
               <button
@@ -192,17 +265,6 @@ export function HeroPanelActions() {
                 title="Bypass"
               >
                 <ToolsIcon size={16} />
-              </button>
-
-              <button
-                className={`hero-panel-actions__icon-btn hero-panel-actions__icon-btn--iterations ${
-                  activeMode === "other" ? "active" : ""
-                }`}
-                onClick={() => setActiveMode("other")}
-                disabled={toggleLibraryGameDisabled}
-                title="Other Action"
-              >
-                <IterationsIcon size={16} />
               </button>
             </div>
           </div>
@@ -230,42 +292,55 @@ export function HeroPanelActions() {
           </Button>
         </>
       ) : (
-        /* Not installed - Show Download button separately */
+        /* Not installed - Show Download button with integrated wrapper */
         <>
-          <div className="hero-panel-actions__main-button">
-            <Button
-              onClick={mainButton.onClick}
-              theme={mainButton.theme}
-              disabled={toggleLibraryGameDisabled}
-              className="hero-panel-actions__primary-btn"
-            >
-              {mainButton.icon}
-              {mainButton.label}
-            </Button>
+          <div className="hero-panel-actions__integrated-wrapper">
+            {/* Main Action Button - Download */}
+            <div className="hero-panel-actions__main-button">
+              <Button
+                onClick={mainButton.onClick}
+                theme={mainButton.theme}
+                disabled={toggleLibraryGameDisabled}
+                className="hero-panel-actions__primary-btn"
+              >
+                {mainButton.icon}
+                {mainButton.label}
+              </Button>
+            </div>
+
+            {/* Single Icon - Download indicator */}
+            <div className="hero-panel-actions__icon-group">
+              <button
+                className="hero-panel-actions__icon-btn hero-panel-actions__icon-btn--download active"
+                disabled={toggleLibraryGameDisabled}
+                title={t("download")}
+              >
+                <DownloadIcon size={16} />
+              </button>
+            </div>
           </div>
 
-          <div className="hero-panel-actions__secondary-group">
-            <div className="hero-panel-actions__separator" />
-            
-            <Button
-              onClick={handleFavoriteClick}
-              theme="outline"
-              disabled={toggleLibraryGameDisabled}
-              className="hero-panel-actions__action"
-            >
-              {game.favorite ? <HeartFillIcon /> : <HeartIcon />}
-            </Button>
+          {/* Favorite & Options buttons - separated */}
+          <div className="hero-panel-actions__separator" />
+          
+          <Button
+            onClick={handleFavoriteClick}
+            theme="outline"
+            disabled={toggleLibraryGameDisabled}
+            className="hero-panel-actions__action"
+          >
+            {game.favorite ? <HeartFillIcon /> : <HeartIcon />}
+          </Button>
 
-            <Button
-              onClick={handleOptionsClick}
-              theme="outline"
-              disabled={toggleLibraryGameDisabled}
-              className="hero-panel-actions__action"
-            >
-              <GearIcon />
-              {t("options")}
-            </Button>
-          </div>
+          <Button
+            onClick={handleOptionsClick}
+            theme="outline"
+            disabled={toggleLibraryGameDisabled}
+            className="hero-panel-actions__action"
+          >
+            <GearIcon />
+            {t("options")}
+          </Button>
         </>
       )}
     </div>

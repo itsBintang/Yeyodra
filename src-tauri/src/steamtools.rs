@@ -649,3 +649,106 @@ pub fn sync_dlcs_to_lua(
     Ok(message)
 }
 
+/// Enable game update by commenting out setManifestid lines in LUA file
+pub fn enable_game_update(app_id: &str) -> Result<String> {
+    println!("Enabling update for game AppID: {}", app_id);
+    
+    let config_path = find_steam_config_path()?;
+    let stplugin_dir = config_path.join("stplug-in");
+    
+    if !stplugin_dir.exists() {
+        return Err(anyhow!("stplug-in directory not found at {:?}", stplugin_dir));
+    }
+    
+    // Find the LUA file for this app
+    let lua_file = find_lua_file_for_appid(&stplugin_dir, app_id)?
+        .ok_or_else(|| anyhow!("LUA file not found for AppID {}", app_id))?;
+    
+    println!("Found LUA file: {:?}", lua_file);
+    
+    // Read the file content
+    let content = fs::read_to_string(&lua_file)?;
+    
+    // Comment out all setManifestid lines
+    let regex = Regex::new(r"(?m)^(\s*)(setManifestid\s*\([^)]+\)\s*)$")?;
+    let mut commented_count = 0;
+    
+    let updated_content = regex.replace_all(&content, |caps: &regex::Captures| {
+        let indent = caps.get(1).unwrap().as_str();
+        let line = caps.get(2).unwrap().as_str();
+        
+        // Skip if already commented
+        if content.lines().any(|l| l.trim_start().starts_with("--") && l.contains(line.trim())) {
+            return format!("{}{}", indent, line);
+        }
+        
+        commented_count += 1;
+        format!("{}--{}", indent, line)
+    });
+    
+    if commented_count == 0 {
+        return Ok("All setManifestid lines are already commented out. Game updates are enabled.".to_string());
+    }
+    
+    // Write the updated content back
+    fs::write(&lua_file, updated_content.as_ref())?;
+    
+    let message = format!(
+        "Game update enabled! Commented out {} setManifestid line{}. Steam will now download updates for this game.",
+        commented_count,
+        if commented_count == 1 { "" } else { "s" }
+    );
+    
+    println!("{}", message);
+    Ok(message)
+}
+
+/// Disable game update by uncommenting setManifestid lines in LUA file
+pub fn disable_game_update(app_id: &str) -> Result<String> {
+    println!("Disabling update for game AppID: {}", app_id);
+    
+    let config_path = find_steam_config_path()?;
+    let stplugin_dir = config_path.join("stplug-in");
+    
+    if !stplugin_dir.exists() {
+        return Err(anyhow!("stplug-in directory not found at {:?}", stplugin_dir));
+    }
+    
+    // Find the LUA file for this app
+    let lua_file = find_lua_file_for_appid(&stplugin_dir, app_id)?
+        .ok_or_else(|| anyhow!("LUA file not found for AppID {}", app_id))?;
+    
+    println!("Found LUA file: {:?}", lua_file);
+    
+    // Read the file content
+    let content = fs::read_to_string(&lua_file)?;
+    
+    // Uncomment setManifestid lines
+    let regex = Regex::new(r"(?m)^(\s*)--(\s*setManifestid\s*\([^)]+\)\s*)$")?;
+    let mut uncommented_count = 0;
+    
+    let updated_content = regex.replace_all(&content, |caps: &regex::Captures| {
+        let indent = caps.get(1).unwrap().as_str();
+        let line = caps.get(2).unwrap().as_str();
+        
+        uncommented_count += 1;
+        format!("{}{}", indent, line)
+    });
+    
+    if uncommented_count == 0 {
+        return Ok("All setManifestid lines are already active. Game updates are already disabled.".to_string());
+    }
+    
+    // Write the updated content back
+    fs::write(&lua_file, updated_content.as_ref())?;
+    
+    let message = format!(
+        "Game update disabled! Uncommented {} setManifestid line{}. Steam will now keep the current version.",
+        uncommented_count,
+        if uncommented_count == 1 { "" } else { "s" }
+    );
+    
+    println!("{}", message);
+    Ok(message)
+}
+

@@ -25,7 +25,35 @@ function GameDetailsContent() {
     setShowDlcManager(true);
   };
 
-  if (isLoading) {
+  // For custom games, create mock shopDetails from library game data
+  const isCustomGame = shop === "custom";
+  const effectiveShopDetails = isCustomGame && game ? {
+    objectId: game.objectId,
+    type: "game",
+    name: game.title,
+    steam_appid: 0,
+    is_free: false,
+    detailed_description: "",
+    about_the_game: "",
+    short_description: "",
+    header_image: game.libraryHeroImageUrl || undefined,
+    capsule_image: game.iconUrl || undefined,
+    screenshots: [],
+    movies: [],
+    developers: [],
+    publishers: [],
+    genres: [],
+    categories: [],
+    supported_languages: "",
+    pc_requirements: { minimum: "", recommended: "" },
+    mac_requirements: { minimum: "", recommended: "" },
+    linux_requirements: { minimum: "", recommended: "" },
+    release_date: { coming_soon: false, date: "" },
+    content_descriptors: { ids: [] },
+  } : shopDetails;
+
+  // For custom games, wait for game to load before showing UI
+  if (isLoading || (isCustomGame && !game)) {
     return (
       <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
         <div className="game-details__wrapper">
@@ -84,7 +112,8 @@ function GameDetailsContent() {
     );
   }
 
-  if (!shopDetails) {
+  // Don't show error for custom games even if shopDetails is null
+  if (!effectiveShopDetails && !isCustomGame) {
     return (
       <div className="game-details-error">
         <h1>Failed to load game details</h1>
@@ -93,9 +122,15 @@ function GameDetailsContent() {
     );
   }
 
-  // Use HD assets from Hydra API (stats.assets), fallback to Steam API
-  const heroImage = stats?.assets?.libraryHeroImageUrl || shopDetails.header_image || "";
-  const logoImage = stats?.assets?.logoImageUrl || shopDetails.capsule_image || "";
+  // Use HD assets from Hydra API (stats.assets), fallback to Steam API or library game
+  const heroImage = stats?.assets?.libraryHeroImageUrl || 
+                    (effectiveShopDetails?.header_image as string | undefined) || 
+                    game?.libraryHeroImageUrl || 
+                    "";
+  const logoImage = stats?.assets?.logoImageUrl || 
+                   (effectiveShopDetails?.capsule_image as string | undefined) || 
+                   game?.logoImageUrl || 
+                   "";
 
   return (
     <>
@@ -103,11 +138,15 @@ function GameDetailsContent() {
         <section className="game-details__container">
           {/* Hero Section - Direct inline like Hydra */}
           <div className="game-details__hero">
-            <img
-              src={heroImage}
-              className="game-details__hero-image"
-              alt={shopDetails.name}
-            />
+            {heroImage ? (
+              <img
+                src={heroImage}
+                className="game-details__hero-image"
+                alt={(effectiveShopDetails?.name || game?.title || "Game") as string}
+              />
+            ) : (
+              <div className="game-details__hero-placeholder" />
+            )}
             <div className="game-details__hero-backdrop" style={{ flex: 1 }} />
 
             <div className="game-details__hero-logo-backdrop">
@@ -116,10 +155,12 @@ function GameDetailsContent() {
                   <img
                     src={logoImage}
                     className="game-details__game-logo"
-                    alt={shopDetails.name}
+                    alt={(effectiveShopDetails?.name || game?.title || "") as string}
                   />
                 ) : (
-                  <h1 className="game-details__game-logo-text">{shopDetails.name}</h1>
+                  <h1 className="game-details__game-logo-text">
+                    {(effectiveShopDetails?.name || game?.title || "Custom Game") as string}
+                  </h1>
                 )}
 
                 <div className="game-details__hero-buttons game-details__hero-buttons--right">
@@ -158,25 +199,37 @@ function GameDetailsContent() {
           {/* Description Container */}
           <div className="game-details__description-container">
             <div className="game-details__description-content">
-              <DescriptionHeader shopDetails={shopDetails} />
-              <GallerySlider shopDetails={shopDetails} />
+              {effectiveShopDetails && <DescriptionHeader shopDetails={effectiveShopDetails} />}
+              {effectiveShopDetails && <GallerySlider shopDetails={effectiveShopDetails} />}
               
               {/* About This Game - Direct HTML rendering like Hydra */}
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: shopDetails.detailed_description,
-                }}
-                className="game-details__description"
-              />
+              {isCustomGame ? (
+                <div className="game-details__description">
+                  <p style={{ color: "#888", fontStyle: "italic" }}>
+                    This is a custom game. You can launch it using the Play button above.
+                  </p>
+                </div>
+              ) : (
+                effectiveShopDetails && (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: effectiveShopDetails.detailed_description,
+                    }}
+                    className="game-details__description"
+                  />
+                )
+              )}
             </div>
             
-            <GameDetailsSidebar 
-              shopDetails={shopDetails} 
-              stats={stats} 
-              achievements={achievements}
-              shop={shop}
-              objectId={objectId}
-            />
+            {effectiveShopDetails && (
+              <GameDetailsSidebar 
+                shopDetails={effectiveShopDetails} 
+                stats={stats} 
+                achievements={achievements}
+                shop={shop}
+                objectId={objectId}
+              />
+            )}
           </div>
         </section>
       </div>
@@ -195,8 +248,8 @@ function GameDetailsContent() {
         visible={showDownloadModal}
         onClose={() => setShowDownloadModal(false)}
         appId={objectId || ""}
-        gameName={shopDetails?.name || ""}
-        gameImageUrl={stats?.assets?.libraryImageUrl || shopDetails?.header_image}
+        gameName={effectiveShopDetails?.name || game?.title || ""}
+        gameImageUrl={stats?.assets?.libraryImageUrl || effectiveShopDetails?.header_image}
         hasRepacks={repacks && repacks.length > 0}
         onDownloadComplete={updateGame}
       />
@@ -206,7 +259,7 @@ function GameDetailsContent() {
           visible={showDlcManager}
           onClose={() => setShowDlcManager(false)}
           appId={objectId || ""}
-          gameName={shopDetails?.name || ""}
+          gameName={effectiveShopDetails?.name || game?.title || ""}
           gameLogoUrl={game.logoImageUrl || undefined}
         />
       )}

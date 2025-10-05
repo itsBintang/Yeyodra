@@ -65,8 +65,8 @@ export interface ShopAssets {
 }
 
 export interface GameStats {
-  download_count: number;
-  player_count: number;
+  downloadCount: number;
+  playerCount: number;
   assets?: ShopAssets | null;
 }
 

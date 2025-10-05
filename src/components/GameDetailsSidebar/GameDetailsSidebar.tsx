@@ -78,7 +78,7 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
                 {t("download_count")}
               </p>
               <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.download_count)}
+                {formatNumber(stats.downloadCount)}
               </p>
             </div>
 
@@ -88,7 +88,7 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
                 {t("player_count")}
               </p>
               <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.player_count)}
+                {formatNumber(stats.playerCount)}
               </p>
             </div>
           </div>

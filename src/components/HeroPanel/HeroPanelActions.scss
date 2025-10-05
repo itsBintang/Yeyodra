@@ -102,9 +102,14 @@
       transform: translateY(0);
     }
 
-    &:disabled {
+    &:disabled,
+    &.disabled {
       opacity: $disabled-opacity;
       cursor: not-allowed;
+      
+      svg {
+        color: rgba(255, 255, 255, 0.3) !important;
+      }
     }
 
     // Active state - highlighted with bottom indicator
@@ -126,16 +131,12 @@
         background: #4ade80;
       }
 
-      &.hero-panel-actions__icon-btn--upload::after {
+      &.hero-panel-actions__icon-btn--play::after {
         background: #60a5fa;
       }
 
       &.hero-panel-actions__icon-btn--tools::after {
         background: #fb923c;
-      }
-
-      &.hero-panel-actions__icon-btn--iterations::after {
-        background: #c084fc;
       }
     }
 
@@ -146,7 +147,7 @@
       }
     }
 
-    &--upload {
+    &--play {
       svg {
         color: #60a5fa; // Blue
       }
@@ -158,10 +159,45 @@
       }
     }
 
-    &--iterations {
+    &--download {
       svg {
-        color: #c084fc; // Purple
+        color: #60a5fa; // Blue - same as play
+      }
+
+      &.active::after {
+        background: #60a5fa; // Blue indicator
       }
     }
+
+    // Scanning animation for sync icon when updating
+    &.scanning {
+      svg {
+        animation: spin 1s linear infinite;
+      }
+
+      &::after {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+// Spinning animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Pulse animation for indicator
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

@@ -54,6 +54,17 @@
     &:focus {
       cursor: text;
     }
+
+    // Remove white background from autocomplete/autofill
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px globals.$background-color inset !important;
+      -webkit-text-fill-color: #dadbe1 !important;
+      caret-color: #dadbe1;
+      transition: background-color 5000s ease-in-out 0s;
+    }
   }
 
   &__action-button {

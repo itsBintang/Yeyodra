@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use reqwest;
 use scraper::{Html, Selector};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use rand::seq::SliceRandom;
 use chrono::Datelike;
+use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CatalogueGame {
@@ -135,6 +136,21 @@ pub struct CatalogueSearchResponse {
 // API Base URL from environment or hardcoded
 const API_URL: &str = "https://hydra-api-us-east-1.losbroxas.org";
 
+// Shared HTTP client with timeout configuration (like Hydra)
+// Using OnceLock for thread-safe lazy initialization
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_http_client() -> &'static reqwest::Client {
+    HTTP_CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .timeout(Duration::from_secs(30)) // 30 second timeout
+            .connect_timeout(Duration::from_secs(10)) // 10 second connect timeout
+            .user_agent("Chaos Launcher v0.1.0")
+            .build()
+            .expect("Failed to create HTTP client")
+    })
+}
+
 // Global state for random game selection (like Hydra)
 static RANDOM_GAME_STATE: Mutex<Option<RandomGameState>> = Mutex::new(None);
 
@@ -146,10 +162,9 @@ struct RandomGameState {
 pub async fn fetch_catalogue(category: &str) -> Result<Vec<CatalogueGame>, String> {
     let url = format!("{}/catalogue/{}?take=12&skip=0", API_URL, category);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch catalogue: {}", e))?;
@@ -170,10 +185,9 @@ pub async fn fetch_trending_games() -> Result<Vec<TrendingGame>, String> {
     // Hydra uses /catalogue/featured endpoint with language param
     let url = format!("{}/catalogue/featured?language=en", API_URL);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch trending games: {}", e))?;
@@ -197,10 +211,9 @@ pub async fn fetch_trending_games() -> Result<Vec<TrendingGame>, String> {
 async fn scrape_steam250(path: &str) -> Result<Vec<Steam250Game>, String> {
     let url = format!("https://steam250.com{}", path);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch steam250: {}", e))?;
@@ -315,10 +328,9 @@ pub async fn fetch_random_game() -> Result<Steam250Game, String> {
 pub async fn fetch_game_stats(object_id: &str, shop: &str) -> Result<GameStats, String> {
     let url = format!("{}/games/{}/{}/stats", API_URL, shop, object_id);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch game stats: {}", e))?;
@@ -339,10 +351,9 @@ pub async fn fetch_game_stats(object_id: &str, shop: &str) -> Result<GameStats, 
 pub async fn fetch_game_achievements(object_id: &str, shop: &str, language: &str) -> Result<Vec<SteamAchievement>, String> {
     let url = format!("{}/games/{}/{}/achievements?language={}", API_URL, shop, object_id, language);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch game achievements: {}", e))?;
@@ -391,10 +402,9 @@ pub async fn search_games(
         skip,
     };
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .post(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .header("Content-Type", "application/json")
         .json(&request_body)
         .send()
@@ -416,10 +426,9 @@ pub async fn search_games(
 pub async fn fetch_developers() -> Result<Vec<String>, String> {
     let url = format!("{}/catalogue/developers", API_URL);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch developers: {}", e))?;
@@ -439,10 +448,9 @@ pub async fn fetch_developers() -> Result<Vec<String>, String> {
 pub async fn fetch_publishers() -> Result<Vec<String>, String> {
     let url = format!("{}/catalogue/publishers", API_URL);
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch publishers: {}", e))?;
@@ -555,10 +563,9 @@ pub async fn fetch_steam_app_details(
         object_id, language
     );
     
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let response = client
         .get(&url)
-        .header("User-Agent", "Chaos Launcher v0.1.0")
         .send()
         .await
         .map_err(|e| format!("Failed to fetch Steam app details: {}", e))?;

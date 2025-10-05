@@ -75,6 +75,11 @@
     align-self: flex-start;
     position: sticky;
     top: 0;
+    // Ensure visibility in production build
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    visibility: visible;
   }
 
   &__filters-sections {

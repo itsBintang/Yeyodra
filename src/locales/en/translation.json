@@ -14,6 +14,7 @@
     "downloads": "Downloads",
     "settings": "Settings",
     "my_library": "My library",
+    "add_custom_game_tooltip": "Add custom game",
     "favorites": "Favorites",
     "sign_in": "Sign in",
     "friends": "Friends",
@@ -131,7 +132,9 @@
     "next_screenshot": "Next",
     "open_screenshot": "Open screenshot {{number}}",
     "cloud_save": "Cloud save",
-    "update_game": "Update Game"
+    "update_game": "Auto Update",
+    "auto_update_enabled_title": "Auto-Update Enabled",
+    "auto_update_enabled_message": "{{gameName}} is now on auto-update. Please restart Steam to apply changes."
   },
   "settings": {
     "general": "General",
@@ -173,7 +176,9 @@
     "delete": "Delete",
     "pause": "Pause",
     "resume": "Resume",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "options": "Options",
+    "redownload": "Redownload"
   },
   "profile": {
     "library": "Library",
@@ -219,6 +224,21 @@
     "not_played_yet": "You haven't played {{title}}",
     "play_time": "{{amount}}",
     "hours": "hours"
+  },
+  "add_custom_game": {
+    "title": "Add Custom Game",
+    "description": "Add a game that's not in the catalogue to your library",
+    "executable_path": "Executable Path",
+    "select_executable": "Select game executable...",
+    "browse": "Browse",
+    "game_title": "Game Title",
+    "enter_title": "Enter game title...",
+    "cancel": "Cancel",
+    "add": "Add Game",
+    "adding": "Adding...",
+    "fill_required": "Please fill in all required fields",
+    "success": "Custom game added successfully",
+    "failed": "Failed to add custom game"
   }
 }
 

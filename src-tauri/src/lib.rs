@@ -9,18 +9,20 @@ mod setup;
 mod user_profile;
 mod achievements;
 mod dlc_cache;
+mod game_launcher;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
-use library::{LibraryGame, add_game_to_library as add_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, update_game_executable_path, mark_game_as_installed};
+use library::{LibraryGame, add_game_to_library as add_to_lib, add_custom_game_to_library as add_custom_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, update_game_executable_path, mark_game_as_installed};
 use preferences::{UserPreferences, get_user_preferences as get_prefs, update_user_preferences as update_prefs};
 use user_profile::{UserProfile, get_user_profile as get_profile, save_user_profile as save_profile, update_user_profile as update_profile};
 use aria2::{Aria2Client, DownloadStatus, GlobalStat};
-use steamtools::{download_steamtools, DownloadResult};
+use steamtools::{download_steamtools, enable_game_update, disable_game_update, DownloadResult};
 use download_history::{CompletedDownload, save_completed_download, get_download_history, remove_from_history, clear_history};
 use steam_restart::restart_steam;
 use achievements::get_game_achievements as get_achievements;
 use dlc_cache::{DlcInfo, DlcCacheData, get_cached_dlc_data, save_dlc_cache_data, is_dlc_cache_valid};
+use game_launcher::launch_game;
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -81,6 +83,15 @@ fn add_game_to_library(
     title: String,
 ) -> Result<LibraryGame, String> {
     add_to_lib(&app_handle, shop, object_id, title)
+}
+
+#[tauri::command]
+fn add_custom_game_to_library(
+    app_handle: tauri::AppHandle,
+    title: String,
+    executable_path: String,
+) -> Result<LibraryGame, String> {
+    add_custom_to_lib(&app_handle, title, executable_path)
 }
 
 #[tauri::command]
@@ -248,6 +259,23 @@ fn clear_download_history() -> Result<(), String> {
     clear_history().map_err(|e| e.to_string())
 }
 
+// Game Update Commands
+#[tauri::command]
+fn enable_update_for_game(app_id: String) -> Result<String, String> {
+    enable_game_update(&app_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn disable_update_for_game(app_id: String) -> Result<String, String> {
+    disable_game_update(&app_id).map_err(|e| e.to_string())
+}
+
+// Game Launcher Command
+#[tauri::command]
+fn launch_game_executable(executable_path: String) -> Result<String, String> {
+    launch_game(&executable_path).map_err(|e| e.to_string())
+}
+
 // Steam Restart Command
 #[tauri::command]
 async fn restart_steam_command() -> Result<String, String> {
@@ -402,6 +430,7 @@ pub fn run() {
             get_publishers,
             get_game_shop_details,
             add_game_to_library,
+            add_custom_game_to_library,
             get_library_game,
             get_library_games,
             remove_library_game,
@@ -427,7 +456,10 @@ pub fn run() {
             get_game_achievements_command,
             get_game_dlcs_with_cache,
             get_installed_dlc_list,
-            sync_dlc_selection
+            sync_dlc_selection,
+            enable_update_for_game,
+            disable_update_for_game,
+            launch_game_executable
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

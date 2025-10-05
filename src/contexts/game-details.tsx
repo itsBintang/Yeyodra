@@ -79,8 +79,13 @@ export function GameDetailsProvider({
   const [showGameOptionsModal, setShowGameOptionsModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  // Fetch shop details (Steam API)
+  // Fetch shop details (Steam API) - Skip for custom games
   const fetchShopDetails = useCallback(async () => {
+    // Skip fetching for custom games
+    if (shop === "custom") {
+      return;
+    }
+    
     try {
       const details = await invoke<ShopDetails>(
         "get_game_shop_details",
@@ -94,10 +99,15 @@ export function GameDetailsProvider({
     } catch (error) {
       console.error("Failed to fetch shop details:", error);
     }
-  }, [objectId]);
+  }, [objectId, shop]);
 
-  // Fetch game stats (Hydra API)
+  // Fetch game stats (Hydra API) - Skip for custom games
   const fetchStats = useCallback(async () => {
+    // Skip fetching for custom games
+    if (shop === "custom") {
+      return;
+    }
+    
     try {
       const gameStats = await invoke<GameStats>("get_game_stats", {
         objectId,
@@ -159,8 +169,13 @@ export function GameDetailsProvider({
     }
   }, [objectId, shop]);
 
-  // Fetch achievements
+  // Fetch achievements - Skip for custom games
   const fetchAchievements = useCallback(async () => {
+    // Skip fetching for custom games
+    if (shop === "custom") {
+      return;
+    }
+    
     try {
       const gameAchievements = await invoke<UserAchievement[]>("get_game_achievements_command", {
         shop,

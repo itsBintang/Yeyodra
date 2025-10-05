@@ -30,4 +30,5 @@ export { SortOptions } from "./SortOptions/SortOptions";
 export type { SortOption } from "./SortOptions/SortOptions";
 export { AchievementsList } from "./AchievementsList/AchievementsList";
 export { DlcManager } from "./DlcManager/DlcManager";
+export { AddCustomGameModal } from "./AddCustomGameModal/AddCustomGameModal";
 
