@@ -26,7 +26,13 @@
     "add_custom_game_tooltip": "Add custom game",
     "game_has_no_executable": "Game has no executable",
     "no_games_in_library": "No games in library",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "restart_steam": "Restart Steam",
+    "restarting": "Restarting...",
+    "restarting_steam": "Restarting Steam...",
+    "steam_restarted": "Steam Restarted",
+    "steam_restart_failed": "Steam Restart Failed",
+    "failed_to_restart_steam": "Failed to restart Steam"
   },
   "header": {
     "home": "Home",
@@ -144,6 +150,40 @@
     "pause": "Pause",
     "resume": "Resume",
     "cancel": "Cancel"
+  },
+  "profile": {
+    "library": "Library",
+    "stats": "Stats",
+    "total_games": "Total Games",
+    "games_played": "Games Played",
+    "total_playtime": "Total Playtime",
+    "hours_played": "{{hours}}h played",
+    "less_than_hour": "< 1h",
+    "no_games_title": "No games in library",
+    "no_games_description": "Start downloading games to build your library",
+    "loading": "Loading...",
+    "edit_profile": "Edit Profile",
+    "display_name": "Display Name",
+    "enter_display_name": "Enter your display name",
+    "profile_image": "Profile Image",
+    "background_image": "Background Image",
+    "upload_image": "Upload Image",
+    "change_image": "Change Image",
+    "remove_image": "Remove Image",
+    "upload_background": "Upload Background",
+    "change_background": "Change Background",
+    "remove_background": "Remove Background",
+    "no_background_image": "No background image",
+    "save_changes": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "upload_banner": "Upload banner",
+    "uploading_banner": "Uploading...",
+    "sort_by": "Sort by",
+    "played_recently": "Played recently",
+    "playtime": "Playtime",
+    "amount_minutes": "{{amount}} minutes",
+    "amount_hours": "{{amount}} hours"
   }
 }
 

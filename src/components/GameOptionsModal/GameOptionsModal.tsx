@@ -62,7 +62,7 @@ export function GameOptionsModal({
     setIsRemoving(true);
     try {
       // Remove SteamTools files first
-      const result = await invoke<{ success: boolean; message: string }>("remove_game", {
+      await invoke<{ success: boolean; message: string }>("remove_game", {
         appId: game.objectId,
       });
       

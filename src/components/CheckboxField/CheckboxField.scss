@@ -2,60 +2,64 @@
 
 .checkbox-field {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: globals.$spacing-unit;
   cursor: pointer;
-  padding: 4px 0;
-  user-select: none;
 
-  &__input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
+  &:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: globals.$disabled-opacity;
+  }
 
-    &:checked ~ .checkbox-field__checkmark {
-      background-color: globals.$primary-color;
-      border-color: globals.$primary-color;
+  &__checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    border-radius: 4px;
+    background-color: globals.$dark-background-color;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all ease 0.2s;
+    border: solid 1px globals.$border-color;
 
-      &::after {
-        display: block;
-      }
+    &:hover:not(:has(input:disabled)) {
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    svg {
+      color: globals.$primary-color;
+      width: 16px;
+      height: 16px;
     }
   }
 
-  &__checkmark {
-    position: relative;
-    height: 16px;
-    width: 16px;
-    background-color: transparent;
-    border: 2px solid globals.$border-color;
-    border-radius: 3px;
-    transition: all ease 0.2s;
+  &__input {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
 
-    &::after {
-      content: "";
-      position: absolute;
-      display: none;
-      left: 4px;
-      top: 1px;
-      width: 4px;
-      height: 8px;
-      border: solid #000;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
+    &:disabled {
+      cursor: not-allowed;
     }
   }
 
   &__label {
-    color: #fff;
-    font-size: 13px;
-    flex: 1;
-  }
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 
-  &:hover .checkbox-field__checkmark {
-    border-color: globals.$primary-color;
+    &:has(+ input:disabled) {
+      cursor: not-allowed;
+    }
   }
 }
 

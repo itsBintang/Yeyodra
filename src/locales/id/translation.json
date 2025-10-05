@@ -26,7 +26,13 @@
       "add_custom_game_tooltip": "Tambahkan game kustom",
       "game_has_no_executable": "Game tidak memiliki file eksekusi",
       "no_games_in_library": "Tidak ada game di perpustakaan",
-      "no_results": "Tidak ada hasil ditemukan"
+      "no_results": "Tidak ada hasil ditemukan",
+      "restart_steam": "Mulai Ulang Steam",
+      "restarting": "Mulai Ulang...",
+      "restarting_steam": "Memulai Ulang Steam...",
+      "steam_restarted": "Steam Direstart",
+      "steam_restart_failed": "Restart Steam Gagal",
+      "failed_to_restart_steam": "Gagal merestart Steam"
     },
     "header": {
       "home": "Beranda",
@@ -144,6 +150,40 @@
     "pause": "Jeda",
     "resume": "Lanjutkan",
     "cancel": "Batal"
+  },
+  "profile": {
+    "library": "Perpustakaan",
+    "stats": "Statistik",
+    "total_games": "Total Game",
+    "games_played": "Game Dimainkan",
+    "total_playtime": "Total Waktu Bermain",
+    "hours_played": "{{hours}} jam dimainkan",
+    "less_than_hour": "< 1 jam",
+    "no_games_title": "Tidak ada game di perpustakaan",
+    "no_games_description": "Mulai mengunduh game untuk membangun perpustakaan Anda",
+    "loading": "Memuat...",
+    "edit_profile": "Edit Profil",
+    "display_name": "Nama Tampilan",
+    "enter_display_name": "Masukkan nama tampilan Anda",
+    "profile_image": "Gambar Profil",
+    "background_image": "Gambar Latar",
+    "upload_image": "Unggah Gambar",
+    "change_image": "Ubah Gambar",
+    "remove_image": "Hapus Gambar",
+    "upload_background": "Unggah Latar",
+    "change_background": "Ubah Latar",
+    "remove_background": "Hapus Latar",
+    "no_background_image": "Tidak ada gambar latar",
+    "save_changes": "Simpan Perubahan",
+    "saving": "Menyimpan...",
+    "cancel": "Batal",
+    "upload_banner": "Unggah banner",
+    "uploading_banner": "Mengunggah...",
+    "sort_by": "Urutkan berdasarkan",
+    "played_recently": "Baru dimainkan",
+    "playtime": "Waktu bermain",
+    "amount_minutes": "{{amount}} menit",
+    "amount_hours": "{{amount}} jam"
   }
 }
   

@@ -22,4 +22,10 @@ export { GameOptionsModal } from "./GameOptionsModal/GameOptionsModal";
 export { DownloadModal } from "./DownloadModal/DownloadModal";
 export { Toast } from "./Toast/Toast";
 export { SteamRestartButton } from "./SteamRestartButton/SteamRestartButton";
+export { Avatar } from "./Avatar/Avatar";
+export { EditProfileModal } from "./EditProfileModal/EditProfileModal";
+export { UploadBackgroundImageButton } from "./UploadBackgroundImageButton/UploadBackgroundImageButton";
+export { UserLibraryGameCard } from "./UserLibraryGameCard/UserLibraryGameCard";
+export { SortOptions } from "./SortOptions/SortOptions";
+export type { SortOption } from "./SortOptions/SortOptions";
 

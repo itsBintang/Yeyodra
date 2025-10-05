@@ -4,6 +4,7 @@ import appReducer from "@/features/appSlice";
 import catalogueReducer from "@/features/catalogueSlice";
 import libraryReducer from "@/features/librarySlice";
 import toastReducer from "@/features/toastSlice";
+import userReducer from "@/features/userSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     catalogue: catalogueReducer,
     library: libraryReducer,
     toast: toastReducer,
+    user: userReducer,
   },
 });
 

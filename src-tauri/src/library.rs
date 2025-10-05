@@ -13,6 +13,8 @@ pub struct LibraryGame {
     pub shop: String,
     #[serde(rename = "iconUrl", alias = "icon_url")]
     pub icon_url: Option<String>,
+    #[serde(rename = "coverImageUrl", alias = "cover_image_url")]
+    pub cover_image_url: Option<String>,
     #[serde(rename = "libraryHeroImageUrl", alias = "library_hero_image_url")]
     pub library_hero_image_url: Option<String>,
     #[serde(rename = "logoImageUrl", alias = "logo_image_url")]
@@ -82,8 +84,23 @@ pub fn add_game_to_library(
 ) -> Result<LibraryGame, String> {
     let game_path = get_game_file_path(app_handle, &shop, &object_id)?;
     
-    // Get shop assets if available
-    let game_assets = get_shop_assets(app_handle, &shop, &object_id).unwrap_or(None);
+    // Get shop assets if available, or fetch from API if not cached
+    let mut game_assets = get_shop_assets(app_handle, &shop, &object_id).unwrap_or(None);
+    
+    // If assets not cached, try to fetch from API
+    if game_assets.is_none() {
+        use crate::api::fetch_game_stats;
+        use tokio::runtime::Runtime;
+        
+        let rt = Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
+        if let Ok(stats) = rt.block_on(fetch_game_stats(&object_id, &shop)) {
+            if let Some(assets) = stats.assets {
+                // Save assets for future use
+                let _ = save_shop_assets(app_handle, shop.clone(), object_id.clone(), assets.clone());
+                game_assets = Some(assets);
+            }
+        }
+    }
     
     // Check if game already exists
     let game = if game_path.exists() {
@@ -98,12 +115,29 @@ pub fn add_game_to_library(
     } else {
         // Create new game entry with assets from shop
         let game_id = format!("{}_{}", shop, object_id);
+        
+        // Generate coverImageUrl from Steam's standard pattern if not in assets
+        let cover_image_url = game_assets
+            .as_ref()
+            .and_then(|a| a.cover_image_url.clone())
+            .or_else(|| {
+                if shop == "steam" {
+                    Some(format!(
+                        "https://shared.steamstatic.com/store_item_assets/steam/apps/{}/library_600x900.jpg",
+                        object_id
+                    ))
+                } else {
+                    None
+                }
+            });
+        
         LibraryGame {
             id: game_id,
             title,
             object_id,
             shop,
             icon_url: game_assets.as_ref().and_then(|a| a.icon_url.clone()),
+            cover_image_url,
             library_hero_image_url: game_assets.as_ref().and_then(|a| a.library_hero_image_url.clone()),
             logo_image_url: game_assets.as_ref().and_then(|a| a.logo_image_url.clone()),
             play_time_in_seconds: 0,

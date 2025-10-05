@@ -1,24 +1,26 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PeopleIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { initializeDefaultUser } from "@/features/userSlice";
+import { Avatar } from "@/components";
 import "./SidebarProfile.scss";
 
 export function SidebarProfile() {
   const navigate = useNavigate();
   const { t } = useTranslation("sidebar");
+  const dispatch = useAppDispatch();
+  
+  const { userProfile } = useAppSelector((state) => state.user);
 
-  // Placeholder for user details - you'll implement this later
-  const userDetails = null;
-  const friendRequestCount = 0;
+  // Initialize default user on mount
+  useEffect(() => {
+    dispatch(initializeDefaultUser());
+  }, [dispatch]);
 
   const handleProfileClick = () => {
-    if (userDetails === null) {
-      // Handle sign in
-      console.log("Sign in");
-      return;
-    }
-
-    navigate(`/profile/${userDetails}`);
+    if (!userProfile) return;
+    navigate(`/profile/${userProfile.id}`);
   };
 
   return (
@@ -29,38 +31,19 @@ export function SidebarProfile() {
         onClick={handleProfileClick}
       >
         <div className="sidebar-profile__button-content">
-          <div
-            className="sidebar-profile__avatar"
-            style={{
-              width: 35,
-              height: 35,
-              borderRadius: "50%",
-              backgroundColor: "#2a2a2a",
-            }}
+          <Avatar
+            size={35}
+            src={userProfile?.profileImageUrl}
+            alt={userProfile?.displayName}
           />
 
           <div className="sidebar-profile__button-information">
             <p className="sidebar-profile__button-title">
-              {userDetails ? "User Name" : t("sign_in")}
+              {userProfile?.displayName || t("loading")}
             </p>
           </div>
         </div>
       </button>
-
-      {userDetails && (
-        <button
-          type="button"
-          className="sidebar-profile__friends-button"
-          title={t("friends")}
-        >
-          {friendRequestCount > 0 && (
-            <small className="sidebar-profile__friends-button-badge">
-              {friendRequestCount > 99 ? "99+" : friendRequestCount}
-            </small>
-          )}
-          <PeopleIcon size={16} />
-        </button>
-      )}
     </div>
   );
 }

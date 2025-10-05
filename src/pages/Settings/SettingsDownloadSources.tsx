@@ -54,7 +54,7 @@ export function SettingsDownloadSources() {
       <div className="settings-download-sources__list">
         <div className="settings-download-sources__item">
           <div className="settings-download-sources__item-info">
-            <h3>Steam</h3>
+            <h3>SteamTools</h3>
             <p>{t("steam_source_description")}</p>
           </div>
           <CheckboxField

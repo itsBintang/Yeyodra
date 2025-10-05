@@ -19,7 +19,11 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' asset: https://asset.localhost data: blob: http://asset.localhost; media-src 'self' asset: https://asset.localhost; connect-src 'self' https://hydra-api-us-east-1.losbroxas.org ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; font-src 'self' data:;",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
     }
   },
   "bundle": {

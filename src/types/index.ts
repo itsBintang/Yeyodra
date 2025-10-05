@@ -1,9 +1,18 @@
 // Add your type definitions here
 
-export interface User {
+// User Profile Types (Local - No Auth)
+export interface UserProfile {
   id: string;
-  name: string;
-  email?: string;
+  displayName: string;
+  profileImageUrl?: string;
+  backgroundImageUrl?: string;
+  createdAt: string;
+}
+
+export interface UserStats {
+  libraryCount: number;
+  totalPlaytime: number; // in seconds
+  gamesPlayed: number;
 }
 
 export interface AppSettings {
@@ -220,6 +229,7 @@ export interface LibraryGame {
   objectId: string;
   shop: string;
   iconUrl: string | null;
+  coverImageUrl: string | null;
   libraryHeroImageUrl: string | null;
   logoImageUrl: string | null;
   playTimeInSeconds: number;
