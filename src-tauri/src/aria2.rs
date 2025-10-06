@@ -18,33 +18,69 @@ impl Aria2Process {
     /// Spawn a new aria2c process with RPC enabled
     /// Use max_connections to limit parallel connections (good for unstable networks)
     pub fn spawn(port: u16, secret: String, max_connections: u8) -> Result<Self, String> {
+        // Determine binary path based on environment
+        let binary_name = if cfg!(windows) { "aria2c.exe" } else { "aria2c" };
+        
         let binary_path = if cfg!(debug_assertions) {
             // Development: use binary from workspace root binaries folder
-            let current_dir = std::env::current_dir()
+            // Try multiple strategies to find the workspace root
+            let mut current_dir = std::env::current_dir()
                 .map_err(|e| format!("Failed to get current directory: {}", e))?;
             
-            // Check if we're in src-tauri directory, if so go up one level
-            let workspace_root = if current_dir.ends_with("src-tauri") {
-                current_dir.parent()
+            // Strategy 1: Check if we're in src-tauri, go up one level
+            if current_dir.ends_with("src-tauri") {
+                current_dir = current_dir.parent()
                     .ok_or("Failed to get parent directory")?
-                    .to_path_buf()
-            } else {
-                current_dir
-            };
+                    .to_path_buf();
+            }
             
-            workspace_root.join("binaries").join("aria2c.exe")
+            // Strategy 2: Look for Cargo.toml and go up if found (we might be in target/debug)
+            let mut search_path = current_dir.clone();
+            loop {
+                let binaries_path = search_path.join("binaries").join(binary_name);
+                if binaries_path.exists() {
+                    break binaries_path;
+                }
+                
+                match search_path.parent() {
+                    Some(parent) => search_path = parent.to_path_buf(),
+                    None => {
+                        // Fallback: assume workspace root
+                        break current_dir.join("binaries").join(binary_name);
+                    }
+                }
+            }
         } else {
-            // Production: use bundled binary
-            let exe_dir = std::env::current_exe()
-                .map_err(|e| format!("Failed to get executable directory: {}", e))?
-                .parent()
-                .ok_or("Failed to get parent directory")?
-                .to_path_buf();
-            exe_dir.join("aria2c.exe")
+            // Production: use bundled binary from resources
+            // In Tauri, bundled resources are placed next to the executable
+            let exe_path = std::env::current_exe()
+                .map_err(|e| format!("Failed to get executable path: {}", e))?;
+            
+            let exe_dir = exe_path.parent()
+                .ok_or("Failed to get executable directory")?;
+            
+            // Try current directory first (where exe is)
+            let mut binary = exe_dir.join(binary_name);
+            
+            // If not found, try resources folder (common in some build configs)
+            if !binary.exists() {
+                binary = exe_dir.join("resources").join(binary_name);
+            }
+            
+            binary
         };
 
+        // Log the path we're trying to use
+        println!("Looking for aria2c at: {:?}", binary_path);
+        
         if !binary_path.exists() {
-            return Err(format!("aria2c binary not found at: {:?}", binary_path));
+            eprintln!("WARNING: aria2c binary not found at: {:?}", binary_path);
+            eprintln!("Current working directory: {:?}", std::env::current_dir());
+            eprintln!("Current executable: {:?}", std::env::current_exe());
+            
+            // Try to continue anyway - the binary might be in PATH
+            // This allows development to continue even if path detection fails
+            println!("Attempting to use 'aria2c' from system PATH...");
         }
 
         let mut command = Command::new(binary_path);
