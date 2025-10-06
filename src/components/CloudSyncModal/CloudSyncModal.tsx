@@ -136,12 +136,12 @@ export function CloudSyncModal({ visible, onClose, gameTitle }: CloudSyncModalPr
                     <div className="cloud-sync-modal__backup-header">
                       <strong>{artifact.label || `Backup from ${formatDate(artifact.createdAt)}`}</strong>
                       <span className="cloud-sync-modal__backup-size">
-                        {formatBytes(artifact.artifactLengthInBytes)}
+                        {formatBytes(artifact.sizeInBytes)}
                       </span>
                     </div>
                     <div className="cloud-sync-modal__backup-meta">
                       <span>📅 {formatDate(artifact.createdAt)}</span>
-                      <span>💻 {artifact.hostname}</span>
+                      <span>📁 {artifact.fileCount} files</span>
                       <span>🖥️ {artifact.platform}</span>
                     </div>
                   </div>

@@ -6,6 +6,9 @@ use std::path::PathBuf;
 use std::process::Command;
 use tauri::{AppHandle, Manager};
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LudusaviFileChange {
     pub change: String, // "New" | "Different" | "Removed" | "Same" | "Unknown"
@@ -324,9 +327,17 @@ impl Ludasavi {
             args.push(prefix.to_string());
         }
 
-        let output = Command::new(&binary_path)
-            .args(&args)
-            .output()?;
+        let mut cmd = Command::new(&binary_path);
+        cmd.args(&args);
+        
+        // Hide console window on Windows
+        #[cfg(target_os = "windows")]
+        {
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+        
+        let output = cmd.output()?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
