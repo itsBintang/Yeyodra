@@ -5,6 +5,7 @@ import { ArrowLeftIcon, SearchIcon, XIcon } from "@primer/octicons-react";
 import classNames from "classnames";
 import { useAppSelector, useAppDispatch } from "@/hooks";
 import { setFilters } from "@/features/catalogueSlice";
+import { useNetworkMode } from "@/contexts/network-mode";
 import "./Header.scss";
 
 const pathTitle: Record<string, string> = {
@@ -20,6 +21,7 @@ export function Header() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { t } = useTranslation("header");
+  const { isLowConnectionMode } = useNetworkMode();
 
   const headerTitle = useAppSelector((state) => state.app.headerTitle);
   const searchValue = useAppSelector((state) => state.catalogue.filters.title);
@@ -108,6 +110,13 @@ export function Header() {
       </section>
 
       <section className="header__section">
+        {isLowConnectionMode && (
+          <div className="header__low-connection-badge" title="Low Connection Mode Active">
+            <span className="header__low-connection-icon">📶</span>
+            <span className="header__low-connection-text">Low Connection</span>
+          </div>
+        )}
+        
         <div
           className={classNames("header__search", {
             "header__search--focused": isFocused,

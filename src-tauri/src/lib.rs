@@ -218,25 +218,38 @@ async fn download_game_steamtools(
     
     // If successful, save to download history AND mark game as installed
     if result.success {
+        println!("[DownloadHistory] Saving download for AppID: {}", app_id);
+        
         let completed_download = CompletedDownload {
             app_id: app_id.clone(),
-            title: game_title,
+            title: game_title.clone(),
             download_type: "SteamTools".to_string(),
             completed_at: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as i64,
-            icon_url,
+            icon_url: icon_url.clone(),
         };
         
-        if let Err(e) = save_completed_download(completed_download) {
-            eprintln!("Failed to save download history: {}", e);
+        match save_completed_download(completed_download) {
+            Ok(_) => {
+                println!("[DownloadHistory] ✓ Successfully saved to history: {}", game_title);
+            }
+            Err(e) => {
+                eprintln!("[DownloadHistory] ✗ Failed to save download history: {}", e);
+                // Continue anyway, don't fail the download
+            }
         }
         
         // Mark game as installed in library if it exists
-        if let Err(e) = mark_game_as_installed(&app_handle, "steam", &app_id) {
-            eprintln!("Failed to mark game as installed: {}", e);
-            // Don't fail the download, just log the error
+        match mark_game_as_installed(&app_handle, "steam", &app_id) {
+            Ok(_) => {
+                println!("[Library] ✓ Marked game as installed: {}", game_title);
+            }
+            Err(e) => {
+                eprintln!("[Library] ✗ Failed to mark game as installed: {}", e);
+                // Don't fail the download, just log the error
+            }
         }
     }
     
@@ -280,6 +293,18 @@ fn launch_game_executable(executable_path: String) -> Result<String, String> {
 #[tauri::command]
 async fn restart_steam_command() -> Result<String, String> {
     restart_steam().await.map_err(|e| e.to_string())
+}
+
+// Aria2c Restart Command (for switching connection modes)
+#[tauri::command]
+async fn restart_aria2c(app_handle: tauri::AppHandle) -> Result<String, String> {
+    let prefs = get_prefs(&app_handle)?;
+    let max_connections = if prefs.low_connection_mode { 4 } else { 16 };
+    
+    aria2::restart_with_connections(max_connections)
+        .map_err(|e| e.to_string())?;
+    
+    Ok(format!("Aria2c restarted with {} connections", max_connections))
 }
 
 // Remove Game Command (removes SteamTools files AND marks game as not installed)
@@ -459,7 +484,8 @@ pub fn run() {
             sync_dlc_selection,
             enable_update_for_game,
             disable_update_for_game,
-            launch_game_executable
+            launch_game_executable,
+            restart_aria2c
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

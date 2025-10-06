@@ -23,6 +23,7 @@ import { Profile } from "./pages/Profile/Profile";
 import { Achievements } from "./pages/Achievements/Achievements";
 import { store } from "./store";
 import resources from "./locales";
+import { NetworkModeProvider } from "./contexts/network-mode";
 
 // Initialize i18next
 i18n
@@ -39,19 +40,21 @@ i18n
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <HashRouter>
-        <Routes>
-          <Route element={<App />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/catalogue" element={<Catalogue />} />
-              <Route path="/game/:shop/:objectId" element={<GameDetails />} />
-              <Route path="/game/:shop/:objectId/achievements/:title" element={<Achievements />} />
-              <Route path="/downloads" element={<Downloads />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile/:userId" element={<Profile />} />
-          </Route>
-        </Routes>
-      </HashRouter>
+      <NetworkModeProvider>
+        <HashRouter>
+          <Routes>
+            <Route element={<App />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/catalogue" element={<Catalogue />} />
+                <Route path="/game/:shop/:objectId" element={<GameDetails />} />
+                <Route path="/game/:shop/:objectId/achievements/:title" element={<Achievements />} />
+                <Route path="/downloads" element={<Downloads />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile/:userId" element={<Profile />} />
+            </Route>
+          </Routes>
+        </HashRouter>
+      </NetworkModeProvider>
     </Provider>
   </React.StrictMode>
 );

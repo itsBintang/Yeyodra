@@ -6,6 +6,7 @@ import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { Button, GameCard, Hero } from "../components";
 import type { CatalogueGame, Steam250Game } from "../types";
 import { CatalogueCategory } from "../types";
+import { useNetworkMode } from "@/contexts/network-mode";
 import flameIconStatic from "../assets/icons/flame-static.png";
 import flameIconAnimated from "../assets/icons/flame-animated.gif";
 import starsIconAnimated from "../assets/icons/stars-animated.gif";
@@ -16,6 +17,7 @@ import "./Home.scss";
 export function Home() {
   const { t } = useTranslation("home");
   const navigate = useNavigate();
+  const { isLowConnectionMode } = useNetworkMode();
 
   const [animateFlame, setAnimateFlame] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +51,12 @@ export function Home() {
   }, []);
 
   const getRandomGame = useCallback(() => {
+    // Skip random game in low connection mode to save bandwidth
+    if (isLowConnectionMode) {
+      console.log("[Low Connection Mode] Skipping random game fetch");
+      return;
+    }
+    
     invoke<Steam250Game>("get_random_game")
       .then((game) => {
         if (game) setRandomGame(game);
@@ -56,7 +64,7 @@ export function Home() {
       .catch((error) => {
         console.error("Failed to fetch random game:", error);
       });
-  }, []);
+  }, [isLowConnectionMode]);
 
   const handleRandomizerClick = () => {
     if (randomGame) {

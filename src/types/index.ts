@@ -257,6 +257,8 @@ export interface UserPreferences {
   downloadsPath?: string | null;
   steamPath?: string | null;
   language?: string;
+  steamtoolsEnabled?: boolean;
+  lowConnectionMode?: boolean;
 }
 
 // Achievement Types

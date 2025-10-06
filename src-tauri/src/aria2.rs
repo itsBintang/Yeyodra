@@ -16,7 +16,8 @@ pub struct Aria2Process {
 
 impl Aria2Process {
     /// Spawn a new aria2c process with RPC enabled
-    pub fn spawn(port: u16, secret: String) -> Result<Self, String> {
+    /// Use max_connections to limit parallel connections (good for unstable networks)
+    pub fn spawn(port: u16, secret: String, max_connections: u8) -> Result<Self, String> {
         let binary_path = if cfg!(debug_assertions) {
             // Development: use binary from workspace root binaries folder
             let current_dir = std::env::current_dir()
@@ -54,8 +55,8 @@ impl Aria2Process {
             &format!("--rpc-secret={}", secret),
             "--file-allocation=none",
             "--allow-overwrite=true",
-            "--max-connection-per-server=16",
-            "--split=16",
+            &format!("--max-connection-per-server={}", max_connections),
+            &format!("--split={}", max_connections),
             "--min-split-size=1M",
             "--continue=true",
             "--auto-file-renaming=false",
@@ -115,7 +116,13 @@ impl Drop for Aria2Process {
 }
 
 /// Initialize the global aria2c instance
+/// max_connections: number of parallel connections (default 16, use 4 for low connection mode)
 pub fn init() -> Result<(), String> {
+    init_with_connections(16) // Default: 16 connections
+}
+
+/// Initialize with custom connection count (for low connection mode)
+pub fn init_with_connections(max_connections: u8) -> Result<(), String> {
     let mut instance = ARIA2_INSTANCE.lock().unwrap();
     
     if instance.is_some() {
@@ -126,9 +133,10 @@ pub fn init() -> Result<(), String> {
     let secret = uuid::Uuid::new_v4().to_string();
     let port = 6800;
 
-    let aria2 = Aria2Process::spawn(port, secret)?;
+    let aria2 = Aria2Process::spawn(port, secret, max_connections)?;
     *instance = Some(aria2);
 
+    println!("Aria2c initialized with {} parallel connections", max_connections);
     Ok(())
 }
 
@@ -158,6 +166,37 @@ pub fn shutdown() -> Result<(), String> {
         aria2.kill()?;
     }
 
+    Ok(())
+}
+
+/// Restart aria2c with new connection count
+/// Used when switching between normal and low connection mode
+pub fn restart_with_connections(max_connections: u8) -> Result<(), String> {
+    println!("Restarting aria2c with {} connections...", max_connections);
+    
+    // Shutdown existing instance
+    {
+        let mut instance = ARIA2_INSTANCE.lock().unwrap();
+        if let Some(mut aria2) = instance.take() {
+            aria2.kill()?;
+            println!("✓ Old aria2c instance stopped");
+        }
+    }
+    
+    // Wait a moment for process to fully terminate
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    
+    // Start new instance with new connection count
+    let secret = uuid::Uuid::new_v4().to_string();
+    let port = 6800;
+    let aria2 = Aria2Process::spawn(port, secret, max_connections)?;
+    
+    {
+        let mut instance = ARIA2_INSTANCE.lock().unwrap();
+        *instance = Some(aria2);
+    }
+    
+    println!("✓ Aria2c restarted with {} parallel connections", max_connections);
     Ok(())
 }
 

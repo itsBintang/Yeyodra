@@ -149,7 +149,9 @@
     "steam_path_auto": "Lokasi Steam terdeteksi otomatis dari Registry Windows",
     "loading": "Memuat pengaturan...",
     "download_sources_description": "Konfigurasi sumber yang digunakan untuk mengunduh file game. Jika diaktifkan, Chaos akan otomatis mencoba berbagai sumber untuk menemukan dan mengunduh file yang diperlukan.",
-    "steam_source_description": "Aktifkan injeksi SteamTools untuk game Steam. Ini akan otomatis mengunduh dan menginstal file yang diperlukan untuk membuka game Steam."
+    "steam_source_description": "Aktifkan injeksi SteamTools untuk game Steam. Ini akan otomatis mengunduh dan menginstal file yang diperlukan untuk membuka game Steam.",
+    "low_connection_mode": "Mode Koneksi Lambat",
+    "low_connection_mode_hint": "Optimasi untuk internet lambat atau tidak stabil dengan mengurangi kualitas gambar, menonaktifkan fitur auto-load, dan membatasi koneksi paralel. Download game tetap tersedia tapi menggunakan koneksi lebih sedikit untuk stabilitas lebih baik."
   },
   "game_options": {
     "title": "Opsi",

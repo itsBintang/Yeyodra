@@ -21,10 +21,17 @@ pub struct UserPreferences {
     
     #[serde(rename = "steamtoolsEnabled", default = "default_true")]
     pub steamtools_enabled: bool,
+    
+    #[serde(rename = "lowConnectionMode", default = "default_false")]
+    pub low_connection_mode: bool,
 }
 
 fn default_true() -> bool {
     true
+}
+
+fn default_false() -> bool {
+    false
 }
 
 impl Default for UserPreferences {
@@ -34,6 +41,7 @@ impl Default for UserPreferences {
             steam_path: detect_steam_path(),
             language: Some("en".to_string()),
             steamtools_enabled: true,
+            low_connection_mode: false,
         }
     }
 }
@@ -139,6 +147,7 @@ pub fn update_user_preferences(
         current.language = updates.language;
     }
     current.steamtools_enabled = updates.steamtools_enabled;
+    current.low_connection_mode = updates.low_connection_mode;
     
     // Ensure directory exists
     if let Some(parent) = path.parent() {

@@ -29,26 +29,34 @@ fn get_history_file_path() -> PathBuf {
 
 pub fn save_completed_download(download: CompletedDownload) -> Result<()> {
     let file_path = get_history_file_path();
+    println!("[DownloadHistory] File path: {:?}", file_path);
     
     // Read existing history
     let mut history = get_download_history()?;
+    println!("[DownloadHistory] Current history count: {}", history.len());
     
     // Check if download already exists (by appId and downloadType)
     let exists = history.iter().any(|d| {
         d.app_id == download.app_id && d.download_type == download.download_type
     });
     
-    // Only add if it doesn't exist
-    if !exists {
-        history.push(download);
+    if exists {
+        println!("[DownloadHistory] Download already exists, skipping: {} ({})", download.title, download.app_id);
+        return Ok(());
     }
+    
+    // Add new download
+    println!("[DownloadHistory] Adding new download: {} ({})", download.title, download.app_id);
+    history.push(download);
     
     // Sort by completed_at descending (newest first)
     history.sort_by(|a, b| b.completed_at.cmp(&a.completed_at));
     
     // Save to file
     let json = serde_json::to_string_pretty(&history)?;
-    fs::write(file_path, json)?;
+    fs::write(&file_path, json)?;
+    
+    println!("[DownloadHistory] ✓ Saved successfully. New count: {}", history.len());
     
     Ok(())
 }

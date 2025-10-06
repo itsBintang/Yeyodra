@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Button, TextField, SelectField } from "@/components";
+import { Button, TextField, SelectField, CheckboxField } from "@/components";
 import type { UserPreferences } from "@/types";
 import { languageNames } from "@/locales";
+import { useNetworkMode } from "@/contexts/network-mode";
+import { useToast } from "@/hooks";
 import "./SettingsGeneral.scss";
 
 export function SettingsGeneral() {
   const { t, i18n } = useTranslation("settings");
+  const { isLowConnectionMode, toggleLowConnectionMode } = useNetworkMode();
+  const { showSuccessToast, showErrorToast } = useToast();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -131,6 +135,33 @@ export function SettingsGeneral() {
         onChange={handleLanguageChange}
         options={languageOptions}
       />
+
+      <div className="settings-general__section">
+        <CheckboxField
+          label={t("low_connection_mode")}
+          checked={isLowConnectionMode}
+          onChange={async () => {
+            try {
+              await toggleLowConnectionMode();
+              const mode = !isLowConnectionMode ? "Low Connection" : "Normal";
+              showSuccessToast(
+                `Switched to ${mode} Mode`,
+                `Download manager restarted with ${!isLowConnectionMode ? "4" : "16"} connections`,
+                3000
+              );
+            } catch (error) {
+              showErrorToast(
+                "Failed to Switch Mode",
+                String(error),
+                4000
+              );
+            }
+          }}
+        />
+        <p className="settings-general__hint">
+          {t("low_connection_mode_hint")}
+        </p>
+      </div>
     </div>
   );
 }

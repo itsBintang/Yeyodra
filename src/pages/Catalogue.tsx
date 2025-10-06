@@ -12,13 +12,15 @@ import {
 import { useAppDispatch, useAppSelector } from "../store";
 import { setFilters, setPage } from "../features/catalogueSlice";
 import { useCatalogue } from "../hooks";
+import { useNetworkMode } from "@/contexts/network-mode";
 import type {
   CatalogueSearchResult,
   CatalogueSearchResponse,
 } from "../types";
 import "./Catalogue.scss";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_NORMAL = 20;
+const PAGE_SIZE_LOW_CONNECTION = 12;
 
 const filterCategoryColors = {
   genres: "hsl(262deg 50% 47%)",
@@ -31,6 +33,7 @@ const filterCategoryColors = {
 export function Catalogue() {
   const { t, i18n } = useTranslation("catalogue");
   const dispatch = useAppDispatch();
+  const { isLowConnectionMode } = useNetworkMode();
   
   const { steamDevelopers, steamPublishers } = useCatalogue();
 
@@ -46,6 +49,9 @@ export function Catalogue() {
   const cataloguePageRef = useRef<HTMLDivElement>(null);
 
   const language = i18n.language.split("-")[0];
+  
+  // Adaptive page size based on connection mode
+  const PAGE_SIZE = isLowConnectionMode ? PAGE_SIZE_LOW_CONNECTION : PAGE_SIZE_NORMAL;
 
   const decodeHTML = (s: string) =>
     s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
@@ -78,7 +84,7 @@ export function Catalogue() {
           setIsLoading(false);
         }
       }
-    }, 500)
+    }, isLowConnectionMode ? 1000 : 500) // Longer debounce in low connection mode
   ).current;
 
 

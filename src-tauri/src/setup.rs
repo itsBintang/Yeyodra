@@ -7,12 +7,20 @@ use crate::aria2;
 pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
     println!("Initializing Chaos Launcher...");
     
-    // 1. Initialize aria2c download manager
-    if let Err(e) = aria2::init() {
+    // 1. Initialize aria2c download manager with adaptive connection count
+    let prefs = get_user_preferences(app_handle).unwrap_or_default();
+    let max_connections = if prefs.low_connection_mode {
+        println!("Low Connection Mode enabled - using 4 connections");
+        4
+    } else {
+        16
+    };
+    
+    if let Err(e) = aria2::init_with_connections(max_connections) {
         eprintln!("Failed to initialize aria2c: {}", e);
         return Err(format!("Failed to initialize aria2c: {}", e));
     }
-    println!("✓ Aria2c initialized");
+    println!("✓ Aria2c initialized with {} connections", max_connections);
     
     // 2. Load user preferences to validate configuration
     match get_user_preferences(app_handle) {
