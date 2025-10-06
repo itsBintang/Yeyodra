@@ -282,3 +282,102 @@ export interface UserAchievement extends SteamAchievement {
   unlockTime: number | null;
 }
 
+// Ludasavi Cloud Save Types
+export interface LudusaviFileChange {
+  change: "New" | "Different" | "Removed" | "Same" | "Unknown";
+  bytes: number;
+}
+
+export interface LudusaviGame {
+  decision: "Processed" | "Cancelled" | "Ignored";
+  change: "New" | "Different" | "Same" | "Unknown";
+  files: Record<string, LudusaviFileChange>;
+  registry?: Record<string, LudusaviFileChange>;
+}
+
+export interface LudusaviBackup {
+  overall: {
+    totalGames: number;
+    totalBytes: number;
+    processedGames: number;
+    processedBytes: number;
+    changedGames: {
+      new: number;
+      different: number;
+      same: number;
+    };
+  };
+  games: Record<string, LudusaviGame>;
+  customBackupPath?: string | null;
+}
+
+export interface LudusaviConfig {
+  manifest: {
+    enable: boolean;
+    secondary: {
+      url: string;
+      enable: boolean;
+    }[];
+  };
+  customGames: {
+    name: string;
+    files: string[];
+    registry: [];
+  }[];
+}
+
+export interface LudusaviBackupMapping {
+  files: {
+    [key: string]: {
+      hash: string;
+      size: number;
+    };
+  };
+}
+
+// Game Artifact (Cloud Backup) Types
+export interface GameArtifact {
+  id: string;
+  objectId: string;
+  shop: string;
+  label: string | null;
+  hostname: string;
+  downloadOptionTitle: string | null;
+  artifactLengthInBytes: number;
+  winePrefixPath: string | null;
+  platform: string;
+  isFrozen: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GameArtifactUploadPayload {
+  artifactLengthInBytes: number;
+  shop: string;
+  objectId: string;
+  hostname: string;
+  winePrefixPath: string | null;
+  homeDir: string;
+  downloadOptionTitle: string | null;
+  platform: string;
+  label?: string;
+}
+
+// Local Backup (for local-only mode)
+export interface LocalBackup {
+  id: string;           // tar filename
+  objectId: string;
+  label: string;
+  createdAt: string;    // from mapping.yaml "when"
+  sizeInBytes: number;
+  fileCount: number;
+  platform: string;     // from mapping.yaml "os"
+}
+
+export interface GameArtifactDownloadResponse {
+  downloadUrl: string;
+  objectKey: string;
+  homeDir: string;
+  winePrefixPath: string | null;
+}
+

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { GameDetailsProvider, useGameDetails } from "@/contexts/game-details";
+import { CloudSyncProvider, useCloudSync } from "@/contexts/cloud-sync";
 import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
-import { GameOptionsModal, DownloadModal, DlcManager } from "@/components";
+import { GameOptionsModal, DownloadModal, DlcManager, CloudSyncModal, CloudSyncFilesModal } from "@/components";
 import { UnlockIcon } from "@primer/octicons-react";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
@@ -15,10 +16,10 @@ function GameDetailsContent() {
   const { shopDetails, stats, isLoading, game, repacks, achievements, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
   const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
   const [showDlcManager, setShowDlcManager] = useState(false);
+  const { setShowCloudSyncModal, showCloudSyncModal, setShowCloudSyncFilesModal, showCloudSyncFilesModal } = useCloudSync();
 
   const handleCloudSaveClick = () => {
-    // TODO: Implement cloud save modal
-    console.log("Cloud save clicked");
+    setShowCloudSyncModal(true);
   };
 
   const handleManageDlcs = () => {
@@ -263,6 +264,17 @@ function GameDetailsContent() {
           gameLogoUrl={game.logoImageUrl || undefined}
         />
       )}
+
+      <CloudSyncModal
+        visible={showCloudSyncModal}
+        onClose={() => setShowCloudSyncModal(false)}
+        gameTitle={effectiveShopDetails?.name || game?.title || ""}
+      />
+
+      <CloudSyncFilesModal
+        visible={showCloudSyncFilesModal}
+        onClose={() => setShowCloudSyncFilesModal(false)}
+      />
     </>
   );
 }
@@ -281,8 +293,17 @@ export function GameDetails() {
 
   return (
     <GameDetailsProvider objectId={objectId} shop={shop}>
-      <GameDetailsContent />
+      <CloudSyncWrapper objectId={objectId} shop={shop} />
     </GameDetailsProvider>
+  );
+}
+
+// Wrapper component to access game from context
+function CloudSyncWrapper({ objectId, shop }: { objectId: string; shop: string }) {
+  return (
+    <CloudSyncProvider objectId={objectId} shop={shop}>
+      <GameDetailsContent />
+    </CloudSyncProvider>
   );
 }
 

@@ -1,0 +1,42 @@
+﻿{
+  "overall": {
+    "totalGames": 1,
+    "totalBytes": 3116130,
+    "processedGames": 1,
+    "processedBytes": 3116130,
+    "changedGames": {
+      "new": 1,
+      "different": 0,
+      "same": 0
+    }
+  },
+  "games": {
+    "Stardew Valley": {
+      "decision": "Processed",
+      "change": "New",
+      "files": {
+        "C:/Users/Nazril/AppData/Roaming/StardewValley/Saves/SaveGameInfo": {
+          "change": "New",
+          "bytes": 18286
+        },
+        "C:/Users/Nazril/AppData/Roaming/StardewValley/Saves/asdass_418019374/SaveGameInfo": {
+          "change": "New",
+          "bytes": 17853
+        },
+        "C:/Users/Nazril/AppData/Roaming/StardewValley/Saves/asdass_418019374/asdass_418019374": {
+          "change": "New",
+          "bytes": 3073797
+        },
+        "C:/Users/Nazril/AppData/Roaming/StardewValley/Saves/steam_autocloud.vdf": {
+          "change": "New",
+          "bytes": 53
+        },
+        "C:/Users/Nazril/AppData/Roaming/StardewValley/default_options": {
+          "change": "New",
+          "bytes": 6141
+        }
+      },
+      "registry": {}
+    }
+  }
+}

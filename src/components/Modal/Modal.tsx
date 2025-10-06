@@ -9,6 +9,7 @@ export interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   large?: boolean;
+  className?: string;
 }
 
 export function Modal({
@@ -18,6 +19,7 @@ export function Modal({
   onClose,
   children,
   large = false,
+  className,
 }: ModalProps) {
   // Handle ESC key to close modal
   useEffect(() => {
@@ -38,7 +40,7 @@ export function Modal({
   return (
     <div className="modal__overlay" onClick={onClose}>
       <div
-        className={`modal ${large ? "modal--large" : ""}`}
+        className={`modal ${large ? "modal--large" : ""} ${className || ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal__header">

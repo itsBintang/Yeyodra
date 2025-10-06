@@ -1,0 +1,136 @@
+@import "@/scss/globals.scss";
+
+.cloud-sync-files-modal {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit * 3);
+  }
+
+  &__method-section,
+  &__path-section,
+  &__files-section {
+    h3 {
+      margin: 0 0 calc($spacing-unit * 2) 0;
+      font-size: $base-font-size;
+      color: $muted-color;
+    }
+  }
+
+  &__methods {
+    display: flex;
+    gap: $spacing-unit;
+    flex-wrap: wrap;
+  }
+
+  &__method-button {
+    display: flex;
+    align-items: center;
+    gap: $spacing-unit;
+  }
+
+  &__info {
+    p {
+      margin: 0;
+      color: $muted-color;
+      font-size: $small-font-size;
+      line-height: 1.5;
+    }
+  }
+
+  &__manual-path {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit * 2);
+  }
+
+  &__path-input {
+    display: flex;
+    gap: $spacing-unit;
+  }
+
+  &__input {
+    flex: 1;
+    padding: calc($spacing-unit * 1.5);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    color: $text-color;
+    font-size: $small-font-size;
+
+    &::placeholder {
+      color: $muted-color;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+    }
+  }
+
+  &__no-files {
+    color: $muted-color;
+    font-size: $small-font-size;
+    text-align: center;
+    padding: calc($spacing-unit * 3);
+    margin: 0;
+  }
+
+  &__file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-unit;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  &__file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: calc($spacing-unit * 2);
+    padding: calc($spacing-unit * 1.5);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  &__file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-unit / 2);
+  }
+
+  &__file-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__file-path {
+    font-size: $small-font-size;
+    color: $muted-color;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__file-size {
+    color: $muted-color;
+    font-size: $small-font-size;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+

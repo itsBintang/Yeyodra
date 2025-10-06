@@ -10,6 +10,8 @@ mod user_profile;
 mod achievements;
 mod dlc_cache;
 mod game_launcher;
+mod ludasavi;
+mod cloud_sync;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -23,6 +25,8 @@ use steam_restart::restart_steam;
 use achievements::get_game_achievements as get_achievements;
 use dlc_cache::{DlcInfo, DlcCacheData, get_cached_dlc_data, save_dlc_cache_data, is_dlc_cache_valid};
 use game_launcher::launch_game;
+use ludasavi::{Ludasavi, LudusaviBackup};
+use cloud_sync::{CloudSync, GameArtifact};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -307,6 +311,130 @@ async fn restart_aria2c(app_handle: tauri::AppHandle) -> Result<String, String> 
     Ok(format!("Aria2c restarted with {} connections", max_connections))
 }
 
+// Cloud Save / Ludasavi Commands
+#[tauri::command]
+async fn get_game_backup_preview(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    _shop: String,
+) -> Result<LudusaviBackup, String> {
+    // Run Ludusavi backup preview in background thread to prevent UI freeze
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let ludasavi = Ludasavi::new(app_handle.clone());
+        
+        // Get wine prefix from game if on Linux
+        let wine_prefix: Option<String> = None; // TODO: Get from library game
+        
+        ludasavi.get_backup_preview(&object_id, wine_prefix.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    
+    result.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn upload_save_game(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    shop: String,
+    download_option_title: Option<String>,
+    label: Option<String>,
+) -> Result<String, String> {
+    let cloud_sync = CloudSync::new(app_handle.clone());
+    
+    // Get wine prefix from game if on Linux
+    let wine_prefix: Option<String> = None; // TODO: Get from library game
+    
+    // Generate label if not provided
+    let backup_label = label.or_else(|| Some(CloudSync::get_backup_label(false)));
+    
+    cloud_sync.upload_save_game(
+        &object_id,
+        &shop,
+        download_option_title.as_deref(),
+        backup_label.as_deref(),
+        wine_prefix.as_deref(),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    
+    Ok("Backup uploaded successfully".to_string())
+}
+
+#[tauri::command]
+async fn download_game_artifact(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    shop: String,
+    game_artifact_id: String,
+) -> Result<String, String> {
+    // LOCAL-ONLY MODE: Restore from local backup
+    let cloud_sync = CloudSync::new(app_handle);
+    
+    cloud_sync.restore_from_local_backup(&game_artifact_id, &object_id, &shop)
+        .map_err(|e| e.to_string())?;
+    
+    Ok("Backup restored successfully".to_string())
+}
+
+#[tauri::command]
+async fn get_game_artifacts(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    shop: String,
+) -> Result<Vec<cloud_sync::LocalBackup>, String> {
+    // LOCAL-ONLY MODE: Return local backups instead of API artifacts
+    let cloud_sync = CloudSync::new(app_handle.clone());
+    
+    cloud_sync.list_local_backups(&object_id, &shop)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn select_game_backup_path(
+    app_handle: tauri::AppHandle,
+    _shop: String,
+    object_id: String,
+    backup_path: Option<String>,
+) -> Result<String, String> {
+    let ludasavi = Ludasavi::new(app_handle);
+    
+    ludasavi.add_custom_game(&object_id, backup_path.as_deref())
+        .map_err(|e| e.to_string())?;
+    
+    Ok("Custom backup path set successfully".to_string())
+}
+
+#[tauri::command]
+async fn delete_game_artifact(
+    _app_handle: tauri::AppHandle,
+    game_artifact_id: String,
+) -> Result<String, String> {
+    // TODO: Implement API call to delete game artifact
+    Ok(format!("Artifact {} deleted", game_artifact_id))
+}
+
+#[tauri::command]
+async fn toggle_artifact_freeze(
+    _app_handle: tauri::AppHandle,
+    game_artifact_id: String,
+    freeze: bool,
+) -> Result<String, String> {
+    // TODO: Implement API call to toggle freeze
+    Ok(format!("Artifact {} freeze status: {}", game_artifact_id, freeze))
+}
+
+#[tauri::command]
+async fn rename_game_artifact(
+    _app_handle: tauri::AppHandle,
+    game_artifact_id: String,
+    label: String,
+) -> Result<String, String> {
+    // TODO: Implement API call to rename artifact
+    Ok(format!("Artifact {} renamed to {}", game_artifact_id, label))
+}
+
 // Remove Game Command (removes SteamTools files AND marks game as not installed)
 #[tauri::command]
 async fn remove_game(app_handle: tauri::AppHandle, app_id: String) -> Result<DownloadResult, String> {
@@ -485,7 +613,15 @@ pub fn run() {
             enable_update_for_game,
             disable_update_for_game,
             launch_game_executable,
-            restart_aria2c
+            restart_aria2c,
+            get_game_backup_preview,
+            upload_save_game,
+            download_game_artifact,
+            get_game_artifacts,
+            select_game_backup_path,
+            delete_game_artifact,
+            toggle_artifact_freeze,
+            rename_game_artifact
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

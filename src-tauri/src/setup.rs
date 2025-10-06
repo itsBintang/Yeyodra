@@ -1,6 +1,7 @@
 use tauri::AppHandle;
 use crate::preferences::get_user_preferences;
 use crate::aria2;
+use crate::ludasavi::Ludasavi;
 
 /// Initialize the application state on startup
 /// Similar to Hydra's loadState() function
@@ -22,7 +23,16 @@ pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
     }
     println!("✓ Aria2c initialized with {} connections", max_connections);
     
-    // 2. Load user preferences to validate configuration
+    // 2. Initialize Ludusavi (copy binary and config to user data)
+    let ludasavi = Ludasavi::new(app_handle.clone());
+    if let Err(e) = ludasavi.init() {
+        eprintln!("Warning: Failed to initialize Ludusavi: {}", e);
+        // Don't fail app startup if ludusavi fails, just log it
+    } else {
+        println!("✓ Ludusavi initialized successfully");
+    }
+    
+    // 3. Load user preferences to validate configuration
     match get_user_preferences(app_handle) {
         Ok(prefs) => {
             println!("✓ User preferences loaded");

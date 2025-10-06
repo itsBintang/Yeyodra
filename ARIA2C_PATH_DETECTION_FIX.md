@@ -321,3 +321,8 @@ Aria2c path detection used `current_dir()` which returns working directory, not 
 *Fixed by: AI Assistant*
 *Inspired by: Hydra's aria2.ts implementation*
 
+
+
+
+
+
