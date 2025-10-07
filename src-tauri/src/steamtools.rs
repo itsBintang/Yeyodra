@@ -17,7 +17,7 @@ use winreg::{enums::*, RegKey};
 lazy_static::lazy_static! {
     static ref HTTP_CLIENT: Client = {
         Client::builder()
-            .user_agent("chaos-launcher/1.0")
+            .user_agent("yeyodra-launcher/1.0")
             .timeout(Duration::from_secs(60))
             .build()
             .expect("Failed to create HTTP client")
@@ -121,7 +121,7 @@ fn update_lua_files(
         }
         
         if !new_lines.is_empty() {
-            updated_content.push_str("\n-- Updated by Chaos --\n");
+            updated_content.push_str("\n-- Updated by Yeyodra --\n");
             updated_content.push_str(&new_lines.join("\n"));
             updated_content.push('\n');
         }
@@ -623,7 +623,7 @@ pub fn sync_dlcs_to_lua(
     
     // Add DLCs if any selected
     if !dlc_ids_to_set.is_empty() {
-        new_content.push_str("\n-- DLCs managed by Chaos --\n");
+        new_content.push_str("\n-- DLCs managed by Yeyodra --\n");
         for dlc_id in &dlc_ids_to_set {
             new_content.push_str(&format!("addappid({})\n", dlc_id));
         }

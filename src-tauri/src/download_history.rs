@@ -19,7 +19,7 @@ pub struct CompletedDownload {
 fn get_history_file_path() -> PathBuf {
     let app_dir = dirs::data_local_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("chaos");
+        .join("yeyodra");
     
     // Create directory if it doesn't exist
     fs::create_dir_all(&app_dir).ok();

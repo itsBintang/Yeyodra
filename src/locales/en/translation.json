@@ -1,7 +1,7 @@
 {
   "app": {
-    "welcome": "Welcome to Chaos",
-    "description": "A modern Tauri application built with React and TypeScript"
+    "welcome": "Welcome to Yeyodra",
+    "description": "A modern game launcher built with React and TypeScript"
   },
   "common": {
     "loading": "Loading...",
@@ -149,7 +149,7 @@
     "steam_path_custom": "Using custom Steam path",
     "steam_path_auto": "Steam path was automatically detected from Windows Registry",
     "loading": "Loading settings...",
-    "download_sources_description": "Configure which sources are used to download game files. When enabled, Chaos will automatically try multiple sources to find and download the necessary files.",
+    "download_sources_description": "Configure which sources are used to download game files. When enabled, Yeyodra will automatically try multiple sources to find and download the necessary files.",
     "steam_source_description": "Enable SteamTools injection for Steam games. This will automatically download and install the necessary files to unlock Steam games.",
     "low_connection_mode": "Low Connection Mode",
     "low_connection_mode_hint": "Optimizes for slow or unstable internet by reducing image quality, disabling auto-load features, and limiting concurrent connections. Downloads remain available but use fewer connections for better stability."

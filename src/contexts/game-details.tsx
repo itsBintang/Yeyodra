@@ -98,6 +98,13 @@ export function GameDetailsProvider({
       setShopDetails({ ...details, objectId });
     } catch (error) {
       console.error("Failed to fetch shop details:", error);
+      // Check if it's a 503 error (Steam API down)
+      const errorMsg = String(error);
+      if (errorMsg.includes("503")) {
+        console.warn("⚠️ Steam Store API is temporarily unavailable. This is a Steam server issue, not your connection.");
+        console.warn("The app will work with limited information. Try refreshing later.");
+      }
+      // Don't set shopDetails to null - let the UI handle gracefully
     }
   }, [objectId, shop]);
 

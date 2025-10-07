@@ -12,6 +12,7 @@ mod dlc_cache;
 mod game_launcher;
 mod ludasavi;
 mod cloud_sync;
+mod lock;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -26,7 +27,7 @@ use achievements::get_game_achievements as get_achievements;
 use dlc_cache::{DlcInfo, DlcCacheData, get_cached_dlc_data, save_dlc_cache_data, is_dlc_cache_valid};
 use game_launcher::launch_game;
 use ludasavi::{Ludasavi, LudusaviBackup};
-use cloud_sync::{CloudSync, GameArtifact};
+use cloud_sync::{CloudSync};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -408,11 +409,28 @@ fn select_game_backup_path(
 
 #[tauri::command]
 async fn delete_game_artifact(
-    _app_handle: tauri::AppHandle,
+    app_handle: tauri::AppHandle,
     game_artifact_id: String,
 ) -> Result<String, String> {
-    // TODO: Implement API call to delete game artifact
-    Ok(format!("Artifact {} deleted", game_artifact_id))
+    // LOCAL-ONLY MODE: Delete local backup
+    let cloud_sync = CloudSync::new(app_handle);
+    
+    cloud_sync.delete_local_backup(&game_artifact_id)
+        .map_err(|e| e.to_string())?;
+    
+    Ok("Backup deleted successfully".to_string())
+}
+
+#[tauri::command]
+async fn copy_backup_to_path(
+    app_handle: tauri::AppHandle,
+    backup_id: String,
+    destination_path: String,
+) -> Result<String, String> {
+    let cloud_sync = CloudSync::new(app_handle);
+    
+    cloud_sync.copy_backup_to_path(&backup_id, &destination_path)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -433,6 +451,20 @@ async fn rename_game_artifact(
 ) -> Result<String, String> {
     // TODO: Implement API call to rename artifact
     Ok(format!("Artifact {} renamed to {}", game_artifact_id, label))
+}
+
+#[tauri::command]
+async fn import_backup_file(
+    app_handle: tauri::AppHandle,
+    source_file_path: String,
+    object_id: String,
+) -> Result<String, String> {
+    let cloud_sync = CloudSync::new(app_handle);
+    
+    let backup_id = cloud_sync.import_backup_file(&source_file_path, &object_id)
+        .map_err(|e| e.to_string())?;
+    
+    Ok(backup_id)
 }
 
 // Remove Game Command (removes SteamTools files AND marks game as not installed)
@@ -620,8 +652,10 @@ pub fn run() {
             get_game_artifacts,
             select_game_backup_path,
             delete_game_artifact,
+            copy_backup_to_path,
             toggle_artifact_freeze,
-            rename_game_artifact
+            rename_game_artifact,
+            import_backup_file
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

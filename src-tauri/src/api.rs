@@ -147,7 +147,7 @@ fn get_http_client() -> &'static reqwest::Client {
             .connect_timeout(Duration::from_secs(15)) // Increased to 15 seconds
             .pool_max_idle_per_host(0) // Disable connection pooling to avoid keep-alive issues
             .tcp_keepalive(Duration::from_secs(60))
-            .user_agent("Chaos Launcher v0.1.0")
+            .user_agent("Yeyodra Launcher v0.1.0")
             .build()
             .expect("Failed to create HTTP client")
     })
@@ -583,33 +583,70 @@ pub async fn fetch_steam_app_details(
         object_id, language
     );
     
+    // Retry logic for Steam API (up to 3 attempts)
+    let max_retries = 3;
     let client = get_http_client();
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to fetch Steam app details: {}", e))?;
-
-    if !response.status().is_success() {
-        return Err(format!("API returned error status: {}", response.status()));
-    }
-
-    let json: serde_json::Value = response
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
-
-    // Steam API returns: { "appid": { "success": true, "data": {...} } }
-    if let Some(app_data) = json.get(object_id) {
-        if app_data.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
-            if let Some(data) = app_data.get("data") {
-                let details: SteamAppDetails = serde_json::from_value(data.clone())
-                    .map_err(|e| format!("Failed to deserialize app details: {}", e))?;
-                return Ok(details);
+    let mut last_error = String::new();
+    
+    for attempt in 0..max_retries {
+        if attempt > 0 {
+            let delay = Duration::from_secs(2_u64.pow(attempt));
+            println!("[API] Retrying Steam API (attempt {}/{}) after {:?}...", attempt + 1, max_retries, delay);
+            tokio::time::sleep(delay).await;
+        }
+        
+        match client.get(&url).send().await {
+            Ok(response) => {
+                let status = response.status();
+                
+                // Handle 503 Service Unavailable - Steam API is down
+                if status.as_u16() == 503 {
+                    last_error = format!("Steam Store API is temporarily unavailable (503). This is a Steam server issue, not your connection. Please try again in a few minutes.");
+                    println!("[API] Steam API returned 503 (attempt {}/{})", attempt + 1, max_retries);
+                    
+                    // Don't retry on 503 after first attempt - likely server maintenance
+                    if attempt >= 1 {
+                        break;
+                    }
+                    continue;
+                }
+                
+                if !status.is_success() {
+                    last_error = format!("Steam API returned error status: {} ({})", status.as_u16(), status.canonical_reason().unwrap_or("Unknown"));
+                    continue;
+                }
+                
+                match response.json::<serde_json::Value>().await {
+                    Ok(json) => {
+                        // Steam API returns: { "appid": { "success": true, "data": {...} } }
+                        if let Some(app_data) = json.get(object_id) {
+                            if app_data.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
+                                if let Some(data) = app_data.get("data") {
+                                    match serde_json::from_value(data.clone()) {
+                                        Ok(details) => return Ok(details),
+                                        Err(e) => {
+                                            last_error = format!("Failed to parse Steam app details: {}", e);
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        last_error = "Game not found or invalid response from Steam".to_string();
+                    }
+                    Err(e) => {
+                        last_error = format!("Failed to parse Steam API response: {}", e);
+                        continue;
+                    }
+                }
+            }
+            Err(e) => {
+                last_error = format!("Network error connecting to Steam API: {}", e);
+                continue;
             }
         }
     }
-
-    Err("Game not found or invalid response".to_string())
+    
+    Err(last_error)
 }
 

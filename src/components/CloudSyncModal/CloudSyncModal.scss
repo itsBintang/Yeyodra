@@ -49,8 +49,16 @@
   }
 
   &__backups {
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: calc($spacing-unit * 2);
+      gap: $spacing-unit;
+    }
+
     h3 {
-      margin: 0 0 calc($spacing-unit * 2) 0;
+      margin: 0;
       font-size: $base-font-size;
       color: $muted-color;
     }

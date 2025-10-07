@@ -1,6 +1,6 @@
-# Chaos - Tauri v2 Application
+# Yeyodra - Modern Game Launcher
 
-A modern desktop application built with Tauri v2, React, TypeScript, and Redux Toolkit.
+A modern desktop game launcher application built with Tauri v2, React, TypeScript, and Redux Toolkit.
 
 ## 🚀 Tech Stack
 
@@ -21,7 +21,7 @@ A modern desktop application built with Tauri v2, React, TypeScript, and Redux T
 ## 📁 Project Structure
 
 ```
-chaos/
+yeyodra/
 ├── src/
 │   ├── assets/          # Static assets (images, fonts, etc)
 │   ├── components/      # Reusable React components

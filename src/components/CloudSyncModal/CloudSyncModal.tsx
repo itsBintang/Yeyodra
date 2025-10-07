@@ -1,7 +1,8 @@
 import { Modal } from "@/components/Modal/Modal";
 import { Button } from "@/components/Button";
 import { useCloudSync } from "@/contexts/cloud-sync";
-import { CloudIcon, UploadIcon, DownloadIcon, TrashIcon, SyncIcon } from "@primer/octicons-react";
+import { CloudIcon, UploadIcon, DownloadIcon, TrashIcon, SyncIcon, CopyIcon, FileIcon } from "@primer/octicons-react";
+import { open } from "@tauri-apps/plugin-dialog";
 import "./CloudSyncModal.scss";
 
 interface CloudSyncModalProps {
@@ -20,6 +21,8 @@ export function CloudSyncModal({ visible, onClose, gameTitle }: CloudSyncModalPr
     uploadSaveGame,
     downloadGameArtifact,
     deleteGameArtifact,
+    copyBackupToPath,
+    importBackupFile,
     setShowCloudSyncFilesModal,
   } = useCloudSync();
 
@@ -46,6 +49,46 @@ export function CloudSyncModal({ visible, onClose, gameTitle }: CloudSyncModalPr
       } catch (error) {
         console.error("Delete failed:", error);
       }
+    }
+  };
+
+  const handleCopyToPath = async (backupId: string) => {
+    try {
+      // Open directory picker dialog
+      const selectedPath = await open({
+        directory: true,
+        multiple: false,
+        title: "Select destination folder for backup",
+      });
+
+      if (selectedPath) {
+        await copyBackupToPath(backupId, selectedPath);
+      }
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
+
+  const handleImportBackup = async () => {
+    try {
+      // Open file picker for .tar files
+      const selectedFile = await open({
+        directory: false,
+        multiple: false,
+        title: "Select backup file to import",
+        filters: [
+          {
+            name: "Backup Files",
+            extensions: ["tar"],
+          },
+        ],
+      });
+
+      if (selectedFile) {
+        await importBackupFile(selectedFile);
+      }
+    } catch (error) {
+      console.error("Import failed:", error);
     }
   };
 
@@ -118,14 +161,24 @@ export function CloudSyncModal({ visible, onClose, gameTitle }: CloudSyncModalPr
         </div>
 
         <div className="cloud-sync-modal__backups">
-          <h3>Your Backups ({artifacts.length})</h3>
+          <div className="cloud-sync-modal__backups-header">
+            <h3>Your Backups ({artifacts.length})</h3>
+            <Button
+              onClick={handleImportBackup}
+              theme="outline"
+              title="Import a backup file from your friend"
+            >
+              <FileIcon />
+              Import Backup
+            </Button>
+          </div>
           
           {artifacts.length === 0 ? (
             <div className="cloud-sync-modal__empty">
               <CloudIcon size={48} />
               <p>No backups yet</p>
               <p className="cloud-sync-modal__empty-hint">
-                Create your first backup to sync your game saves
+                Create a backup or import one from a friend
               </p>
             </div>
           ) : (
@@ -153,6 +206,14 @@ export function CloudSyncModal({ visible, onClose, gameTitle }: CloudSyncModalPr
                     >
                       <DownloadIcon />
                       Restore
+                    </Button>
+                    <Button
+                      onClick={() => handleCopyToPath(artifact.id)}
+                      theme="outline"
+                      title="Copy backup to another location"
+                    >
+                      <CopyIcon />
+                      Copy
                     </Button>
                     <Button
                       onClick={() => handleDelete(artifact.id)}

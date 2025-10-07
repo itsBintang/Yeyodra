@@ -23,33 +23,44 @@ impl Aria2Process {
         
         let binary_path = if cfg!(debug_assertions) {
             // Development: use binary from workspace root binaries folder
-            // Try multiple strategies to find the workspace root
-            let mut current_dir = std::env::current_dir()
+            // Optimized path search to prevent UI freeze
+            let current_dir = std::env::current_dir()
                 .map_err(|e| format!("Failed to get current directory: {}", e))?;
             
-            // Strategy 1: Check if we're in src-tauri, go up one level
-            if current_dir.ends_with("src-tauri") {
-                current_dir = current_dir.parent()
-                    .ok_or("Failed to get parent directory")?
-                    .to_path_buf();
+            // Fast path: Try common development locations first
+            let common_locations = [
+                current_dir.join("binaries").join(binary_name),                    // From workspace root
+                current_dir.join("..").join("binaries").join(binary_name),         // From src-tauri/
+                current_dir.join("../..").join("binaries").join(binary_name),      // From target/debug/
+            ];
+            
+            let mut found_path = None;
+            for path in &common_locations {
+                if path.exists() {
+                    found_path = Some(path.clone());
+                    break;
+                }
             }
             
-            // Strategy 2: Look for Cargo.toml and go up if found (we might be in target/debug)
-            let mut search_path = current_dir.clone();
-            loop {
-                let binaries_path = search_path.join("binaries").join(binary_name);
-                if binaries_path.exists() {
-                    break binaries_path;
-                }
-                
-                match search_path.parent() {
-                    Some(parent) => search_path = parent.to_path_buf(),
-                    None => {
-                        // Fallback: assume workspace root
-                        break current_dir.join("binaries").join(binary_name);
+            // Slow path: Search up the tree if not found (limited to 5 levels)
+            if found_path.is_none() {
+                let mut search_path = current_dir.clone();
+                for _ in 0..5 {
+                    let binaries_path = search_path.join("binaries").join(binary_name);
+                    if binaries_path.exists() {
+                        found_path = Some(binaries_path);
+                        break;
+                    }
+                    
+                    match search_path.parent() {
+                        Some(parent) => search_path = parent.to_path_buf(),
+                        None => break,
                     }
                 }
             }
+            
+            // Use found path or fallback to current_dir/binaries
+            found_path.unwrap_or_else(|| current_dir.join("binaries").join(binary_name))
         } else {
             // Production: use bundled binary from resources
             // In Tauri, bundled resources are placed next to the executable
@@ -99,8 +110,9 @@ impl Aria2Process {
             "--quiet=true",
         ]);
 
-        // Hide console window on Windows in release builds
-        #[cfg(all(windows, not(debug_assertions)))]
+        // Hide console window on Windows (both debug and release builds)
+        // This prevents CMD window from flashing during startup
+        #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
             const CREATE_NO_WINDOW: u32 = 0x08000000;

@@ -24,7 +24,9 @@ export interface CloudSyncContextValue {
   downloadGameArtifact: (gameArtifactId: string) => Promise<void>;
   getGameArtifacts: () => Promise<void>;
   deleteGameArtifact: (gameArtifactId: string) => Promise<void>;
+  copyBackupToPath: (backupId: string, destinationPath: string) => Promise<void>;
   selectGameBackupPath: (backupPath: string | null) => Promise<void>;
+  importBackupFile: (sourceFilePath: string) => Promise<void>;
   showCloudSyncFilesModal: boolean;
   setShowCloudSyncFilesModal: (show: boolean) => void;
 }
@@ -157,6 +159,24 @@ export function CloudSyncProvider({ children, objectId, shop }: CloudSyncProvide
     [showSuccessToast, showErrorToast, getGameArtifacts, getGameBackupPreview]
   );
 
+  // Copy backup to custom path
+  const copyBackupToPath = useCallback(
+    async (backupId: string, destinationPath: string) => {
+      try {
+        console.log("[CloudSync] Copying backup to path:", { backupId, destinationPath });
+        const copiedPath = await invoke<string>("copy_backup_to_path", {
+          backupId,
+          destinationPath,
+        });
+        showSuccessToast(`Backup copied successfully to: ${copiedPath}`);
+      } catch (error) {
+        console.error("[CloudSync] Failed to copy backup:", error);
+        showErrorToast("Failed to copy backup", String(error));
+      }
+    },
+    [showSuccessToast, showErrorToast]
+  );
+
   // Select game backup path
   const selectGameBackupPath = useCallback(
     async (backupPath: string | null) => {
@@ -175,6 +195,26 @@ export function CloudSyncProvider({ children, objectId, shop }: CloudSyncProvide
       }
     },
     [shop, objectId, showSuccessToast, showErrorToast, getGameBackupPreview]
+  );
+
+  // Import backup file
+  const importBackupFile = useCallback(
+    async (sourceFilePath: string) => {
+      try {
+        console.log("[CloudSync] Importing backup file:", sourceFilePath);
+        const backupId = await invoke<string>("import_backup_file", {
+          sourceFilePath,
+          objectId,
+        });
+        showSuccessToast(`Backup imported successfully! (ID: ${backupId})`);
+        // Refresh artifacts list
+        await Promise.all([getGameArtifacts(), getGameBackupPreview()]);
+      } catch (error) {
+        console.error("[CloudSync] Failed to import backup:", error);
+        showErrorToast("Failed to import backup", String(error));
+      }
+    },
+    [objectId, showSuccessToast, showErrorToast, getGameArtifacts, getGameBackupPreview]
   );
 
   // Calculate backup state
@@ -208,7 +248,9 @@ export function CloudSyncProvider({ children, objectId, shop }: CloudSyncProvide
     downloadGameArtifact,
     getGameArtifacts,
     deleteGameArtifact,
+    copyBackupToPath,
     selectGameBackupPath,
+    importBackupFile,
     showCloudSyncFilesModal,
     setShowCloudSyncFilesModal,
   };

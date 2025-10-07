@@ -203,8 +203,8 @@ impl CloudSync {
         &self,
         object_id: &str,
         shop: &str,
-        download_option_title: Option<&str>,
-        label: Option<&str>,
+        _download_option_title: Option<&str>,
+        _label: Option<&str>,
         wine_prefix: Option<&str>,
     ) -> Result<()> {
         // Bundle backup
@@ -502,7 +502,7 @@ impl CloudSync {
         game_backup_path: &PathBuf,
         mapping: &LudusaviMapping,
         current_home: &str,
-        wine_prefix: Option<&str>,
+        _wine_prefix: Option<&str>,
     ) -> Result<()> {
         let backup_info = mapping.backups.first()
             .ok_or_else(|| anyhow::anyhow!("No backup entries in mapping.yaml"))?;
@@ -557,6 +557,107 @@ impl CloudSync {
         }
         
         Err(anyhow::anyhow!("Could not extract home directory from path: {}", file_path))
+    }
+
+    /// Copy backup tar file to custom destination path
+    pub fn copy_backup_to_path(&self, backup_id: &str, destination_path: &str) -> Result<String> {
+        let backups_dir = self.get_backups_path()?;
+        let source_path = backups_dir.join(backup_id);
+        
+        // Verify source file exists
+        if !source_path.exists() {
+            return Err(anyhow::anyhow!("Backup file not found: {}", backup_id));
+        }
+
+        // Parse destination path
+        let dest_path = PathBuf::from(destination_path);
+        
+        // Check if destination is a directory
+        let final_dest = if dest_path.is_dir() {
+            // If it's a directory, append the backup filename
+            dest_path.join(backup_id)
+        } else {
+            // If it's a file path, use it as is
+            dest_path
+        };
+
+        // Create destination directory if it doesn't exist
+        if let Some(parent) = final_dest.parent() {
+            fs::create_dir_all(parent)?;
+        }
+
+        // Copy the file
+        fs::copy(&source_path, &final_dest)?;
+
+        println!("[CloudSync] ✓ Backup copied successfully!");
+        println!("[CloudSync]   From: {:?}", source_path);
+        println!("[CloudSync]   To: {:?}", final_dest);
+
+        Ok(final_dest.to_string_lossy().to_string())
+    }
+
+    /// Delete local backup file
+    pub fn delete_local_backup(&self, backup_id: &str) -> Result<()> {
+        let backups_dir = self.get_backups_path()?;
+        let tar_path = backups_dir.join(backup_id);
+        
+        if !tar_path.exists() {
+            return Err(anyhow::anyhow!("Backup file not found: {}", backup_id));
+        }
+
+        fs::remove_file(&tar_path)?;
+        println!("[CloudSync] ✓ Backup deleted: {}", backup_id);
+
+        Ok(())
+    }
+
+    /// Import external backup file (.tar) into local backups directory
+    /// This allows users to restore backups shared by friends
+    pub fn import_backup_file(&self, source_file_path: &str, object_id: &str) -> Result<String> {
+        let source_path = PathBuf::from(source_file_path);
+        
+        // Verify source file exists and is a .tar file
+        if !source_path.exists() {
+            return Err(anyhow::anyhow!("Source file not found: {}", source_file_path));
+        }
+        
+        if source_path.extension().and_then(|s| s.to_str()) != Some("tar") {
+            return Err(anyhow::anyhow!("Only .tar files are supported"));
+        }
+
+        // Verify the tar file contains valid backup for this game
+        match self.read_backup_metadata(&source_path, object_id) {
+            Ok(Some(_backup)) => {
+                // Valid backup for this game
+            },
+            Ok(None) => {
+                return Err(anyhow::anyhow!(
+                    "This backup file is not for the current game (object_id: {})", 
+                    object_id
+                ));
+            },
+            Err(e) => {
+                return Err(anyhow::anyhow!("Invalid backup file: {}", e));
+            }
+        }
+
+        // Get backups directory
+        let backups_dir = self.get_backups_path()?;
+        fs::create_dir_all(&backups_dir)?;
+
+        // Generate new filename with UUID to avoid conflicts
+        let new_filename = format!("{}.tar", Uuid::new_v4());
+        let dest_path = backups_dir.join(&new_filename);
+
+        // Copy file to backups directory
+        fs::copy(&source_path, &dest_path)?;
+
+        println!("[CloudSync] ✓ Backup imported successfully!");
+        println!("[CloudSync]   From: {:?}", source_path);
+        println!("[CloudSync]   To: {:?}", dest_path);
+        println!("[CloudSync]   New ID: {}", new_filename);
+
+        Ok(new_filename)
     }
 }
 
