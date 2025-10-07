@@ -7,6 +7,14 @@
         "expiresAt": null,
         "deviceId": null,
         "maxDevices": 1
+      },
+      {
+        "key": "CHAOS-A1B2-C3D4-E5G8",
+        "status": "available",
+        "activatedAt": null,
+        "expiresAt": null,
+        "deviceId": null,
+        "maxDevices": 1
       }
     ]
   }

@@ -1,14 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { LicenseInfo } from "../../types";
-import { LicenseActivationModal } from "../../components";
 import { Button } from "../../components/Button";
 import "./SettingsLicense.scss";
 
 export default function SettingsLicense() {
   const [license, setLicense] = useState<LicenseInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showActivationModal, setShowActivationModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadLicense = async () => {
@@ -39,7 +37,7 @@ export default function SettingsLicense() {
     try {
       const validated = await invoke<LicenseInfo>("validate_license_key");
       setLicense(validated);
-      alert("License is valid!");
+      alert("✓ License is valid!");
     } catch (err) {
       console.error("[License] Validation failed:", err);
       setError(String(err));
@@ -51,7 +49,7 @@ export default function SettingsLicense() {
   const handleDeactivate = async () => {
     if (!license) return;
 
-    if (!confirm("Are you sure you want to deactivate this license?")) {
+    if (!confirm("Are you sure you want to deactivate this license? You will need to reactivate to use the app.")) {
       return;
     }
 
@@ -59,20 +57,19 @@ export default function SettingsLicense() {
     setError(null);
 
     try {
-      await invoke<string>("deactivate_license_key");
+      await invoke("deactivate_license_key");
       setLicense(null);
-      alert("License deactivated successfully");
+      
+      // Reload app to show activation page
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       console.error("[License] Deactivation failed:", err);
       setError(String(err));
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleActivationSuccess = (newLicense: LicenseInfo) => {
-    setLicense(newLicense);
-    setShowActivationModal(false);
   };
 
   const getDaysRemaining = () => {
@@ -110,10 +107,7 @@ export default function SettingsLicense() {
         <div className="no-license">
           <div className="icon">🔐</div>
           <h3>No Active License</h3>
-          <p>Activate a license key to unlock all features of Chaos Launcher</p>
-          <Button onClick={() => setShowActivationModal(true)}>
-            Activate License
-          </Button>
+          <p>This should not be visible. Please reload the app.</p>
         </div>
       )}
 
@@ -167,17 +161,11 @@ export default function SettingsLicense() {
               onClick={handleDeactivate}
               disabled={isLoading}
             >
-              Deactivate
+              Deactivate License
             </Button>
           </div>
         </div>
       )}
-
-      <LicenseActivationModal
-        visible={showActivationModal}
-        onClose={() => setShowActivationModal(false)}
-        onSuccess={handleActivationSuccess}
-      />
     </div>
   );
 }

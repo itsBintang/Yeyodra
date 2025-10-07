@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppSelector } from "@/store";
-import { Sidebar, Header, Toast, LicenseActivationModal } from "./components";
+import { Sidebar, Header, Toast } from "./components";
 import { closeToast } from "@/features/toastSlice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { LicenseInfo } from "./types";
+import LicenseActivation from "./pages/LicenseActivation/LicenseActivation";
 import "./App.scss";
 
 export function App() {
@@ -13,7 +14,7 @@ export function App() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const toast = useAppSelector((state) => state.toast);
-  const [showLicenseModal, setShowLicenseModal] = useState(false);
+  const [isLicensed, setIsLicensed] = useState(false);
   const [licenseChecked, setLicenseChecked] = useState(false);
 
   // Check license on app startup
@@ -28,12 +29,15 @@ export function App() {
         const now = new Date();
         
         if (expiresAt < now) {
-          console.log("[Auth] License expired, showing activation modal");
-          setShowLicenseModal(true);
+          console.log("[Auth] License expired");
+          setIsLicensed(false);
+        } else {
+          console.log("[Auth] License valid");
+          setIsLicensed(true);
         }
       } catch (err) {
-        console.log("[Auth] No license found, showing activation modal");
-        setShowLicenseModal(true);
+        console.log("[Auth] No license found");
+        setIsLicensed(false);
       } finally {
         setLicenseChecked(true);
       }
@@ -44,6 +48,33 @@ export function App() {
     }
   }, [licenseChecked]);
 
+  // Background validation every 1 minute (for testing)
+  useEffect(() => {
+    if (!isLicensed || !licenseChecked) return;
+
+    const validateInBackground = async () => {
+      try {
+        console.log("[Auth] Background validation...");
+        await invoke("validate_license_key");
+        console.log("[Auth] Background validation passed");
+      } catch (err) {
+        console.error("[Auth] Background validation failed:", err);
+        // License invalid - force re-activation
+        setIsLicensed(false);
+        alert("Your license is no longer valid. Please reactivate.");
+      }
+    };
+
+    // Validate immediately on mount
+    validateInBackground();
+
+    // Then validate every 1 minute (for testing - change to 30 * 60 * 1000 for production)
+    // Production: 30 minutes
+const interval = setInterval(validateInBackground, 30 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isLicensed, licenseChecked]);
+
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [location.pathname, location.search]);
@@ -52,10 +83,15 @@ export function App() {
     dispatch(closeToast());
   };
 
-  const handleLicenseActivated = (license: LicenseInfo) => {
-    console.log("[Auth] License activated:", license);
-    setShowLicenseModal(false);
-  };
+  // Show license activation page if not licensed
+  if (licenseChecked && !isLicensed) {
+    return <LicenseActivation />;
+  }
+
+  // Show loading state while checking license
+  if (!licenseChecked) {
+    return null;
+  }
 
   return (
     <>
@@ -78,12 +114,6 @@ export function App() {
         type={toast.type}
         duration={toast.duration}
         onClose={handleCloseToast}
-      />
-
-      <LicenseActivationModal
-        visible={showLicenseModal}
-        onClose={() => setShowLicenseModal(false)}
-        onSuccess={handleLicenseActivated}
       />
     </>
   );
