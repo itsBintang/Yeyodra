@@ -238,30 +238,39 @@ impl Ludasavi {
             println!("[Ludasavi] Config already exists");
         }
 
-        // Update manifest database (download latest game database)
-        println!("[Ludasavi] Updating manifest database...");
-        match self.update_manifest() {
-            Ok(_) => println!("[Ludasavi] ✓ Manifest database updated"),
-            Err(e) => eprintln!("[Ludasavi] Warning: Failed to update manifest: {}", e),
-        }
-
-        println!("[Ludasavi] ✓ Initialization complete");
+        println!("[Ludasavi] ✓ Binary and config initialization complete");
         Ok(())
     }
 
     /// Update the ludusavi manifest database
-    fn update_manifest(&self) -> Result<()> {
+    /// This is now a public method that can be called manually from settings
+    pub fn update_manifest_database(&self) -> Result<()> {
         let binary_path = self.get_binary_path()?;
         let config_path = self.get_ludusavi_config_path()?;
         
-        let output = Command::new(&binary_path)
-            .args([
-                "--config",
-                &config_path.to_string_lossy(),
-                "manifest",
-                "update",
-            ])
-            .output()?;
+        let mut cmd = Command::new(&binary_path);
+        cmd.args([
+            "--config",
+            &config_path.to_string_lossy(),
+            "manifest",
+            "update",
+        ]);
+        
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            
+            // CREATE_NO_WINDOW prevents console window creation
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            // DETACHED_PROCESS creates process without console
+            const DETACHED_PROCESS: u32 = 0x00000008;
+            
+            // Combine both flags for complete suppression
+            cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
+        }
+        
+        let output = cmd.output()?;
         
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -330,11 +339,18 @@ impl Ludasavi {
         let mut cmd = Command::new(&binary_path);
         cmd.args(&args);
         
-        // Hide console window on Windows
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
         #[cfg(target_os = "windows")]
         {
+            use std::os::windows::process::CommandExt;
+            
+            // CREATE_NO_WINDOW prevents console window creation
             const CREATE_NO_WINDOW: u32 = 0x08000000;
-            cmd.creation_flags(CREATE_NO_WINDOW);
+            // DETACHED_PROCESS creates process without console
+            const DETACHED_PROCESS: u32 = 0x00000008;
+            
+            // Combine both flags for complete suppression
+            cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
         }
         
         let output = cmd.output()?;

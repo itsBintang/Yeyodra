@@ -7,10 +7,18 @@ pub async fn restart_steam() -> Result<String> {
 
     #[cfg(target_os = "windows")]
     {
+        use std::os::windows::process::CommandExt;
+        
         // First, terminate the Steam process
-        let kill_result = Command::new("taskkill")
-            .args(&["/F", "/IM", "steam.exe"])
-            .output();
+        let mut kill_cmd = Command::new("taskkill");
+        kill_cmd.args(&["/F", "/IM", "steam.exe"]);
+        
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        kill_cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
+        
+        let kill_result = kill_cmd.output();
 
         match kill_result {
             Ok(output) => {
@@ -30,17 +38,26 @@ pub async fn restart_steam() -> Result<String> {
 
         // Find and restart Steam
         match find_steam_executable_path() {
-            Ok(steam_path) => match Command::new(&steam_path).spawn() {
+            Ok(steam_path) => {
+                let mut steam_cmd = Command::new(&steam_path);
+                
+                // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
+                const CREATE_NO_WINDOW: u32 = 0x08000000;
+                const DETACHED_PROCESS: u32 = 0x00000008;
+                steam_cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
+                
+                match steam_cmd.spawn() {
                 Ok(_) => {
                     println!("Steam restarted successfully");
                     Ok("Steam has been restarted successfully".to_string())
                 }
-                Err(e) => {
-                    let error_msg = format!("Failed to restart Steam: {}", e);
-                    println!("{}", error_msg);
-                    Err(anyhow::anyhow!(error_msg))
+                    Err(e) => {
+                        let error_msg = format!("Failed to restart Steam: {}", e);
+                        println!("{}", error_msg);
+                        Err(anyhow::anyhow!(error_msg))
+                    }
                 }
-            },
+            }
             Err(e) => {
                 let error_msg = format!("Steam executable not found: {}", e);
                 println!("{}", error_msg);

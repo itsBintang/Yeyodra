@@ -2,8 +2,6 @@ use std::path::Path;
 use anyhow::Result;
 
 #[cfg(target_os = "windows")]
-use std::os::windows::process::CommandExt;
-#[cfg(target_os = "windows")]
 use std::process::Command;
 
 /// Launch a game executable
@@ -38,14 +36,16 @@ pub fn launch_game(executable_path: &str) -> Result<String> {
     // Launch the game process
     #[cfg(target_os = "windows")]
     {
-        // Use Windows ShellExecute to handle elevation properly
-        // CREATE_NO_WINDOW = 0x08000000
+        use std::os::windows::process::CommandExt;
+        
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
         const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
         
         Command::new("cmd")
             .args(["/C", "start", "", executable_path])
             .current_dir(working_dir)
-            .creation_flags(CREATE_NO_WINDOW)
+            .creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS)
             .spawn()
             .map_err(|e| anyhow::anyhow!("Failed to launch game: {}", e))?;
     }

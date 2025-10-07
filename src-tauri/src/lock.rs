@@ -66,11 +66,18 @@ impl AppLock {
     #[cfg(windows)]
     fn is_process_running(pid: u32) -> bool {
         use std::process::Command;
+        use std::os::windows::process::CommandExt;
         
         // Use tasklist to check if process exists
-        let output = Command::new("tasklist")
-            .args(&["/FI", &format!("PID eq {}", pid), "/NH"])
-            .output();
+        let mut cmd = Command::new("tasklist");
+        cmd.args(&["/FI", &format!("PID eq {}", pid), "/NH"]);
+        
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        cmd.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
+        
+        let output = cmd.output();
         
         match output {
             Ok(output) => {

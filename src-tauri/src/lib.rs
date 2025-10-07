@@ -410,6 +410,22 @@ async fn get_game_backup_preview(
 }
 
 #[tauri::command]
+async fn update_ludusavi_manifest(
+    app_handle: tauri::AppHandle,
+) -> Result<String, String> {
+    // Update manifest in background thread (network operation)
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let ludasavi = Ludasavi::new(app_handle.clone());
+        ludasavi.update_manifest_database()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    
+    result.map_err(|e| e.to_string())?;
+    Ok("Ludusavi manifest database updated successfully".to_string())
+}
+
+#[tauri::command]
 async fn upload_save_game(
     app_handle: tauri::AppHandle,
     object_id: String,
@@ -781,7 +797,8 @@ pub fn run() {
             clear_shop_details_cache,
             clear_game_stats_cache,
             get_cache_stats,
-            clear_all_caches
+            clear_all_caches,
+            update_ludusavi_manifest
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

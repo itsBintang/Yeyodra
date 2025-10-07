@@ -66,6 +66,17 @@ pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
     match ludasavi.init() {
         Ok(_) => {
             println!("[Setup] ✓ Ludusavi initialized successfully");
+            
+            // CRITICAL: Update manifest in background to enable cloud save
+            // This runs async so it won't block app startup
+            let ludasavi_clone = Ludasavi::new(app_handle.clone());
+            tauri::async_runtime::spawn(async move {
+                println!("[Ludasavi] Starting background manifest update...");
+                match ludasavi_clone.update_manifest_database() {
+                    Ok(_) => println!("[Ludasavi] ✓ Manifest database updated successfully"),
+                    Err(e) => eprintln!("[Ludasavi] ⚠ Warning: Failed to update manifest: {}", e),
+                }
+            });
         }
         Err(e) => {
             eprintln!("[Setup] ⚠ Warning: Failed to initialize Ludusavi: {}", e);

@@ -110,13 +110,18 @@ impl Aria2Process {
             "--quiet=true",
         ]);
 
-        // Hide console window on Windows (both debug and release builds)
-        // This prevents CMD window from flashing during startup
+        // ✅ CRITICAL FIX: Multiple flags needed to completely hide window on Windows
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
+            
+            // CREATE_NO_WINDOW prevents console window creation
             const CREATE_NO_WINDOW: u32 = 0x08000000;
-            command.creation_flags(CREATE_NO_WINDOW);
+            // DETACHED_PROCESS creates process without console
+            const DETACHED_PROCESS: u32 = 0x00000008;
+            
+            // Combine both flags for complete suppression
+            command.creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS);
         }
 
         let process = command
