@@ -113,17 +113,11 @@ function GameDetailsContent() {
     );
   }
 
-  // Don't show error for custom games even if shopDetails is null
-  if (!effectiveShopDetails && !isCustomGame) {
-    return (
-      <div className="game-details-error">
-        <h1>Failed to load game details</h1>
-        <p>Please try again later</p>
-      </div>
-    );
-  }
-
-  // Use HD assets from Hydra API (stats.assets), fallback to Steam API or library game
+  // HYDRA PATTERN: Don't show error page - just show available data
+  // Even if shopDetails is null, we can still show library game info
+  
+  // HYDRA PATTERN: Multi-source fallback strategy for images
+  // Priority: 1) Stats (Yeyodra API) 2) ShopDetails (Steam API) 3) Library Game (Local)
   const heroImage = stats?.assets?.libraryHeroImageUrl || 
                     (effectiveShopDetails?.header_image as string | undefined) || 
                     game?.libraryHeroImageUrl || 
@@ -132,6 +126,9 @@ function GameDetailsContent() {
                    (effectiveShopDetails?.capsule_image as string | undefined) || 
                    game?.logoImageUrl || 
                    "";
+  
+  // HYDRA PATTERN: Always have a title, even if all API calls fail
+  const gameTitle = effectiveShopDetails?.name || game?.title || "Unknown Game";
 
   return (
     <>
@@ -139,11 +136,12 @@ function GameDetailsContent() {
         <section className="game-details__container">
           {/* Hero Section - Direct inline like Hydra */}
           <div className="game-details__hero">
+            {/* HYDRA PATTERN: Hero image with fallback */}
             {heroImage ? (
               <img
                 src={heroImage}
                 className="game-details__hero-image"
-                alt={(effectiveShopDetails?.name || game?.title || "Game") as string}
+                alt={gameTitle}
               />
             ) : (
               <div className="game-details__hero-placeholder" />
@@ -152,15 +150,16 @@ function GameDetailsContent() {
 
             <div className="game-details__hero-logo-backdrop">
               <div className="game-details__hero-content">
+                {/* HYDRA PATTERN: Logo with graceful text fallback */}
                 {logoImage ? (
                   <img
                     src={logoImage}
                     className="game-details__game-logo"
-                    alt={(effectiveShopDetails?.name || game?.title || "") as string}
+                    alt={gameTitle}
                   />
                 ) : (
                   <h1 className="game-details__game-logo-text">
-                    {(effectiveShopDetails?.name || game?.title || "Custom Game") as string}
+                    {gameTitle}
                   </h1>
                 )}
 
@@ -200,28 +199,39 @@ function GameDetailsContent() {
           {/* Description Container */}
           <div className="game-details__description-container">
             <div className="game-details__description-content">
+              {/* HYDRA PATTERN: Optional chaining - components handle null */}
               {effectiveShopDetails && <DescriptionHeader shopDetails={effectiveShopDetails} />}
               {effectiveShopDetails && <GallerySlider shopDetails={effectiveShopDetails} />}
               
-              {/* About This Game - Direct HTML rendering like Hydra */}
+              {/* HYDRA PATTERN: Graceful fallback for description */}
               {isCustomGame ? (
                 <div className="game-details__description">
                   <p style={{ color: "#888", fontStyle: "italic" }}>
                     This is a custom game. You can launch it using the Play button above.
                   </p>
                 </div>
+              ) : effectiveShopDetails?.detailed_description ? (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: effectiveShopDetails.detailed_description,
+                  }}
+                  className="game-details__description"
+                />
               ) : (
-                effectiveShopDetails && (
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: effectiveShopDetails.detailed_description,
-                    }}
-                    className="game-details__description"
-                  />
-                )
+                <div className="game-details__description">
+                  <div className="game-details__no-data">
+                    <p style={{ color: "#888", fontStyle: "italic" }}>
+                      Could not retrieve shop details. This may be due to Steam API rate limiting or temporary unavailability.
+                    </p>
+                    <p style={{ color: "#888", fontSize: "0.9em", marginTop: "8px" }}>
+                      You can still add this game to your library and download it using the buttons above.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
             
+            {/* HYDRA PATTERN: Sidebar always shows (handles null internally) */}
             {effectiveShopDetails && (
               <GameDetailsSidebar 
                 shopDetails={effectiveShopDetails} 
@@ -245,11 +255,12 @@ function GameDetailsContent() {
         />
       )}
       
+      {/* HYDRA PATTERN: Use gameTitle constant for consistency */}
       <DownloadModal
         visible={showDownloadModal}
         onClose={() => setShowDownloadModal(false)}
         appId={objectId || ""}
-        gameName={effectiveShopDetails?.name || game?.title || ""}
+        gameName={gameTitle}
         gameImageUrl={stats?.assets?.libraryImageUrl || effectiveShopDetails?.header_image}
         hasRepacks={repacks && repacks.length > 0}
         onDownloadComplete={updateGame}
@@ -260,7 +271,7 @@ function GameDetailsContent() {
           visible={showDlcManager}
           onClose={() => setShowDlcManager(false)}
           appId={objectId || ""}
-          gameName={effectiveShopDetails?.name || game?.title || ""}
+          gameName={gameTitle}
           gameLogoUrl={game.logoImageUrl || undefined}
         />
       )}
@@ -268,7 +279,7 @@ function GameDetailsContent() {
       <CloudSyncModal
         visible={showCloudSyncModal}
         onClose={() => setShowCloudSyncModal(false)}
-        gameTitle={effectiveShopDetails?.name || game?.title || ""}
+        gameTitle={gameTitle}
       />
 
       <CloudSyncFilesModal

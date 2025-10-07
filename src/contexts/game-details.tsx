@@ -80,6 +80,7 @@ export function GameDetailsProvider({
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   // Fetch shop details (Steam API) - Skip for custom games
+  // HYDRA PATTERN: Silent error handling, no throwing
   const fetchShopDetails = useCallback(async () => {
     // Skip fetching for custom games
     if (shop === "custom") {
@@ -97,18 +98,26 @@ export function GameDetailsProvider({
       
       setShopDetails({ ...details, objectId });
     } catch (error) {
-      console.error("Failed to fetch shop details:", error);
-      // Check if it's a 503 error (Steam API down)
+      // HYDRA PATTERN: Silent error - just log, don't throw, don't block
       const errorMsg = String(error);
-      if (errorMsg.includes("503")) {
-        console.warn("⚠️ Steam Store API is temporarily unavailable. This is a Steam server issue, not your connection.");
-        console.warn("The app will work with limited information. Try refreshing later.");
+      
+      if (errorMsg.includes("429")) {
+        console.warn("⚠️ Rate limited by Steam API. Page will work with limited data.");
+      } else if (errorMsg.includes("503")) {
+        console.warn("⚠️ Steam Store API is temporarily unavailable. Page will work with limited data.");
+      } else if (errorMsg.includes("Circuit breaker")) {
+        console.warn("⚠️ Circuit breaker is open. Page will work with cached/limited data.");
+      } else {
+        console.warn("⚠️ Could not fetch shop details. Page will work with limited data.");
       }
-      // Don't set shopDetails to null - let the UI handle gracefully
+      
+      // HYDRA PATTERN: Don't set to null - leave as is, let UI handle with fallbacks
+      // shopDetails will remain null if this is first load, or keep old data if cached
     }
   }, [objectId, shop]);
 
   // Fetch game stats (Hydra API) - Skip for custom games
+  // HYDRA PATTERN: Silent error handling
   const fetchStats = useCallback(async () => {
     // Skip fetching for custom games
     if (shop === "custom") {
@@ -132,13 +141,14 @@ export function GameDetailsProvider({
             assets: gameStats.assets,
           });
         } catch (error) {
-          console.error("Failed to save shop assets:", error);
+          // Silent - saving assets is nice-to-have, not critical
+          console.warn("Could not save shop assets to cache:", error);
         }
       }
     } catch (error) {
-      console.error("Failed to fetch game stats:", error);
-      // Stats are optional, don't block UI
-      setStats(null);
+      // HYDRA PATTERN: Silent error - stats are optional, don't block UI
+      console.warn("⚠️ Could not fetch game stats. Some features may be limited.");
+      // Don't set to null - leave as is
     }
   }, [objectId, shop]);
 
@@ -177,6 +187,7 @@ export function GameDetailsProvider({
   }, [objectId, shop]);
 
   // Fetch achievements - Skip for custom games
+  // HYDRA PATTERN: Silent error handling
   const fetchAchievements = useCallback(async () => {
     // Skip fetching for custom games
     if (shop === "custom") {
@@ -193,8 +204,9 @@ export function GameDetailsProvider({
       console.log("[GameDetails] Achievements fetched:", gameAchievements.length);
       setAchievements(gameAchievements);
     } catch (error) {
-      console.error("Failed to fetch achievements:", error);
-      // Achievements are optional, set to empty array
+      // HYDRA PATTERN: Silent error - achievements are optional
+      console.warn("⚠️ Could not fetch achievements. Achievement features may be limited.");
+      // Set to empty array so UI knows we tried but failed
       setAchievements([]);
     }
   }, [objectId, shop]);
@@ -213,12 +225,14 @@ export function GameDetailsProvider({
   }, [shopDetails?.name, dispatch]);
 
   // Initial data fetch
+  // HYDRA PATTERN: Use Promise.allSettled to never block loading
   useEffect(() => {
     const loadGameDetails = async () => {
       setIsLoading(true);
       
-      // Fetch all data in parallel
-      await Promise.all([
+      // HYDRA PATTERN: Promise.allSettled instead of Promise.all
+      // This ensures loading always completes, even if some requests fail
+      const results = await Promise.allSettled([
         fetchShopDetails(),
         fetchStats(),
         updateRepacks(),
@@ -226,6 +240,15 @@ export function GameDetailsProvider({
         fetchAchievements(),
       ]);
       
+      // Log which requests failed (for debugging)
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const names = ['shopDetails', 'stats', 'repacks', 'game', 'achievements'];
+          console.warn(`[GameDetails] ${names[index]} fetch failed:`, result.reason);
+        }
+      });
+      
+      // HYDRA PATTERN: ALWAYS end loading, no matter what
       setIsLoading(false);
     };
 

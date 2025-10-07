@@ -142,11 +142,11 @@ pub fn add_game_to_library(
     
     // If assets not cached, try to fetch from API
     if game_assets.is_none() {
-        use crate::api::fetch_game_stats;
+        use crate::api::fetch_game_stats_cached;
         use tokio::runtime::Runtime;
         
         let rt = Runtime::new().map_err(|e| format!("Failed to create runtime: {}", e))?;
-        if let Ok(stats) = rt.block_on(fetch_game_stats(&object_id, &shop)) {
+        if let Ok(stats) = rt.block_on(fetch_game_stats_cached(app_handle, &object_id, &shop)) {
             if let Some(assets) = stats.assets {
                 // Save assets for future use
                 let _ = save_shop_assets(app_handle, shop.clone(), object_id.clone(), assets.clone());

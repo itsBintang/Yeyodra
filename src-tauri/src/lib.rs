@@ -13,8 +13,9 @@ mod game_launcher;
 mod ludasavi;
 mod cloud_sync;
 mod lock;
+mod cache;
 
-use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details, UserAchievement};
+use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats_cached, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details_cached, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
 use library::{LibraryGame, add_game_to_library as add_to_lib, add_custom_game_to_library as add_custom_to_lib, get_game_from_library, get_all_library_games, remove_game_from_library, save_shop_assets, update_game_executable_path, mark_game_as_installed};
 use preferences::{UserPreferences, get_user_preferences as get_prefs, update_user_preferences as update_prefs};
@@ -28,6 +29,7 @@ use dlc_cache::{DlcInfo, DlcCacheData, get_cached_dlc_data, save_dlc_cache_data,
 use game_launcher::launch_game;
 use ludasavi::{Ludasavi, LudusaviBackup};
 use cloud_sync::{CloudSync};
+use cache::{GameShopCache, GameStatsCache, CacheStats};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -52,8 +54,12 @@ async fn get_random_game() -> Result<Steam250Game, String> {
 }
 
 #[tauri::command]
-async fn get_game_stats(object_id: String, shop: String) -> Result<GameStats, String> {
-    fetch_game_stats(&object_id, &shop).await
+async fn get_game_stats(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    shop: String,
+) -> Result<GameStats, String> {
+    fetch_game_stats_cached(&app_handle, &object_id, &shop).await
 }
 
 #[tauri::command]
@@ -76,8 +82,12 @@ async fn get_publishers() -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-async fn get_game_shop_details(object_id: String, language: String) -> Result<SteamAppDetails, String> {
-    fetch_steam_app_details(&object_id, &language).await
+async fn get_game_shop_details(
+    app_handle: tauri::AppHandle,
+    object_id: String,
+    language: String,
+) -> Result<SteamAppDetails, String> {
+    fetch_steam_app_details_cached(&app_handle, &object_id, &language).await
 }
 
 #[tauri::command]
@@ -599,6 +609,53 @@ fn sync_dlc_selection(
     steamtools::sync_dlcs_to_lua(&app_id, selected_dlc_ids).map_err(|e| e.to_string())
 }
 
+// Cache Management Commands (following Hydra's pattern)
+#[tauri::command]
+fn clear_shop_details_cache(app_handle: tauri::AppHandle) -> Result<String, String> {
+    let cache = GameShopCache::new(&app_handle)
+        .map_err(|e| e.to_string())?;
+    
+    cache.clear_all()
+        .map_err(|e| e.to_string())?;
+    
+    Ok("Shop details cache cleared successfully".to_string())
+}
+
+#[tauri::command]
+fn clear_game_stats_cache(app_handle: tauri::AppHandle) -> Result<String, String> {
+    let cache = GameStatsCache::new(&app_handle)
+        .map_err(|e| e.to_string())?;
+    
+    cache.clear_all()
+        .map_err(|e| e.to_string())?;
+    
+    Ok("Game stats cache cleared successfully".to_string())
+}
+
+#[tauri::command]
+fn get_cache_stats(app_handle: tauri::AppHandle) -> Result<CacheStats, String> {
+    let cache = GameShopCache::new(&app_handle)
+        .map_err(|e| e.to_string())?;
+    
+    cache.get_stats()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn clear_all_caches(app_handle: tauri::AppHandle) -> Result<String, String> {
+    // Clear shop details cache
+    if let Ok(shop_cache) = GameShopCache::new(&app_handle) {
+        let _ = shop_cache.clear_all();
+    }
+    
+    // Clear stats cache
+    if let Ok(stats_cache) = GameStatsCache::new(&app_handle) {
+        let _ = stats_cache.clear_all();
+    }
+    
+    Ok("All caches cleared successfully".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -655,7 +712,11 @@ pub fn run() {
             copy_backup_to_path,
             toggle_artifact_freeze,
             rename_game_artifact,
-            import_backup_file
+            import_backup_file,
+            clear_shop_details_cache,
+            clear_game_stats_cache,
+            get_cache_stats,
+            clear_all_caches
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

@@ -5,6 +5,7 @@ use std::sync::{Mutex, OnceLock};
 use rand::seq::SliceRandom;
 use chrono::Datelike;
 use std::time::Duration;
+use crate::cache::{GameShopCache, GameStatsCache};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CatalogueGame {
@@ -55,7 +56,7 @@ pub struct ShopAssets {
     pub cover_image_url: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GameStats {
     #[serde(rename = "downloadCount", alias = "download_count")]
     pub download_count: i64,
@@ -345,7 +346,87 @@ pub async fn fetch_random_game() -> Result<Steam250Game, String> {
     Ok(game)
 }
 
-pub async fn fetch_game_stats(object_id: &str, shop: &str) -> Result<GameStats, String> {
+/// Fetch game stats with caching (following Hydra's pattern)
+pub async fn fetch_game_stats_cached(
+    app_handle: &tauri::AppHandle,
+    object_id: &str,
+    shop: &str,
+) -> Result<GameStats, String> {
+    // Initialize cache
+    let cache = GameStatsCache::new(app_handle)
+        .map_err(|e| format!("Failed to initialize stats cache: {}", e))?;
+    
+    // Generate cache key for request deduplication
+    let cache_key = format!("{}:{}", shop, object_id);
+    
+    // ZENITH PATTERN: Check if request already in progress
+    let _request_lock = cache.get_or_create_request_lock(&cache_key).await;
+    let _guard = _request_lock.lock().await;
+    
+    // HYDRA PATTERN: Try cache first (instant load)
+    if let Ok(cached_stats) = cache.get::<GameStats>(shop, object_id) {
+        // Cache hit - silent (too spammy if logged every time)
+        
+        // Remove lock before spawning background task
+        drop(_guard);
+        cache.remove_request_lock(&cache_key).await;
+        
+        // Background refresh (optional, like Hydra)
+        let app_handle_clone = app_handle.clone();
+        let object_id_clone = object_id.to_string();
+        let shop_clone = shop.to_string();
+        
+        tokio::spawn(async move {
+            // Silent background refresh
+            if let Ok(cache) = GameStatsCache::new(&app_handle_clone) {
+                // ZENITH: Throttle background refresh
+                cache.throttle_request().await;
+                
+                if let Ok(fresh_stats) = fetch_game_stats_from_api(&object_id_clone, &shop_clone).await {
+                    cache.reset_error_count().await;
+                    let _ = cache.put(&shop_clone, &object_id_clone, fresh_stats);
+                } else {
+                    cache.record_error().await;
+                }
+            }
+        });
+        
+        return Ok(cached_stats);
+    }
+    
+    // ZENITH PATTERN: Check circuit breaker
+    if cache.is_circuit_breaker_open().await {
+        cache.remove_request_lock(&cache_key).await;
+        return Err("Circuit breaker is open - too many consecutive errors. Please try again later.".to_string());
+    }
+    
+    // ZENITH PATTERN: Throttle request
+    cache.throttle_request().await;
+    
+    // CACHE MISS: Fetch from API
+    let result = fetch_game_stats_from_api(object_id, shop).await;
+    
+    // ZENITH PATTERN: Handle result for circuit breaker
+    match result {
+        Ok(stats) => {
+            cache.reset_error_count().await;
+            
+            // Save to cache (silent - too spammy)
+            let _ = cache.put(shop, object_id, stats.clone());
+            
+            cache.remove_request_lock(&cache_key).await;
+            Ok(stats)
+        }
+        Err(e) => {
+            cache.record_error().await;
+            cache.remove_request_lock(&cache_key).await;
+            Err(e)
+        }
+    }
+}
+
+/// Internal function to fetch game stats from Hydra API
+async fn fetch_game_stats_from_api(object_id: &str, shop: &str) -> Result<GameStats, String> {
     let url = format!("{}/games/{}/{}/stats", API_URL, shop, object_id);
     
     let client = get_http_client();
@@ -489,6 +570,7 @@ pub async fn fetch_publishers() -> Result<Vec<String>, String> {
 
 // Game Details Types - Minimal like Hydra
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct SteamAppDetails {
     pub name: String,
     #[serde(rename = "steam_appid")]
@@ -527,32 +609,32 @@ pub struct Requirements {
     pub recommended: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReleaseDate {
     pub coming_soon: bool,
     pub date: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContentDescriptors {
     pub ids: Vec<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Screenshot {
     pub id: u32,
     pub path_thumbnail: String,
     pub path_full: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoSource {
     pub max: String,
     #[serde(rename = "480")]
     pub quality_480: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Movie {
     pub id: u32,
     pub name: String,
@@ -562,7 +644,7 @@ pub struct Movie {
     pub mp4: VideoSource,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Genre {
     pub id: String,
     pub description: String,
@@ -574,7 +656,90 @@ pub struct Category {
     pub description: String,
 }
 
-pub async fn fetch_steam_app_details(
+/// Fetch Steam app details with caching (following Hydra's pattern)
+/// This is called from Tauri commands and needs app_handle for cache access
+pub async fn fetch_steam_app_details_cached(
+    app_handle: &tauri::AppHandle,
+    object_id: &str,
+    language: &str,
+) -> Result<SteamAppDetails, String> {
+    // Initialize cache
+    let cache = GameShopCache::new(app_handle)
+        .map_err(|e| format!("Failed to initialize cache: {}", e))?;
+    
+    // Generate cache key for request deduplication
+    let cache_key = format!("steam:{}:{}", object_id, language);
+    
+    // ZENITH PATTERN: Check if request already in progress (request deduplication)
+    let _request_lock = cache.get_or_create_request_lock(&cache_key).await;
+    let _guard = _request_lock.lock().await; // Wait if another request is in progress
+    
+    // HYDRA PATTERN: Try cache first (instant load)
+    if let Ok(cached_data) = cache.get::<SteamAppDetails>("steam", object_id, language) {
+        // Cache hit - silent (too spammy if logged every time)
+        
+        // Remove lock before spawning background task
+        drop(_guard);
+        cache.remove_request_lock(&cache_key).await;
+        
+        // Spawn background task to refresh cache (optional, like Hydra)
+        let app_handle_clone = app_handle.clone();
+        let object_id_clone = object_id.to_string();
+        let language_clone = language.to_string();
+        
+        tokio::spawn(async move {
+            // Silent background refresh
+            if let Ok(cache) = GameShopCache::new(&app_handle_clone) {
+                // ZENITH: Throttle background refresh
+                cache.throttle_request().await;
+                
+                if let Ok(fresh_data) = fetch_steam_app_details_from_api(&object_id_clone, &language_clone).await {
+                    cache.reset_error_count().await;
+                    let _ = cache.put("steam", &object_id_clone, &language_clone, fresh_data);
+                } else {
+                    cache.record_error().await;
+                }
+            }
+        });
+        
+        return Ok(cached_data);
+    }
+    
+    // ZENITH PATTERN: Check circuit breaker before making API call
+    if cache.is_circuit_breaker_open().await {
+        cache.remove_request_lock(&cache_key).await;
+        return Err("Circuit breaker is open - too many consecutive errors. Please try again later.".to_string());
+    }
+    
+    // ZENITH PATTERN: Throttle request to prevent rate limiting
+    cache.throttle_request().await;
+    
+    // CACHE MISS: Fetch from API
+    let result = fetch_steam_app_details_from_api(object_id, language).await;
+    
+    // ZENITH PATTERN: Handle result for circuit breaker
+    match result {
+        Ok(details) => {
+            // Success: Reset error count
+            cache.reset_error_count().await;
+            
+            // Save to cache for future use (silent - too spammy)
+            let _ = cache.put("steam", object_id, language, details.clone());
+            
+            cache.remove_request_lock(&cache_key).await;
+            Ok(details)
+        }
+        Err(e) => {
+            // Error: Record for circuit breaker
+            cache.record_error().await;
+            cache.remove_request_lock(&cache_key).await;
+            Err(e)
+        }
+    }
+}
+
+/// Internal function to fetch from Steam API (with retry logic)
+async fn fetch_steam_app_details_from_api(
     object_id: &str,
     language: &str,
 ) -> Result<SteamAppDetails, String> {
@@ -598,6 +763,15 @@ pub async fn fetch_steam_app_details(
         match client.get(&url).send().await {
             Ok(response) => {
                 let status = response.status();
+                
+                // ZENITH PATTERN: Handle 429 Rate Limit
+                if status.as_u16() == 429 {
+                    last_error = format!("Rate limited by Steam API (429). Too many requests. Circuit breaker will activate.");
+                    println!("[API] ⚠️ Steam API rate limit 429 (attempt {}/{})", attempt + 1, max_retries);
+                    
+                    // Don't retry immediately on 429 - let circuit breaker handle it
+                    break;
+                }
                 
                 // Handle 503 Service Unavailable - Steam API is down
                 if status.as_u16() == 503 {
