@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { SettingsGeneral } from "./SettingsGeneral";
 import { SettingsDownloadSources } from "./SettingsDownloadSources";
+import SettingsLicense from "./SettingsLicense";
 import "./Settings.scss";
 
 export function Settings() {
@@ -12,12 +13,14 @@ export function Settings() {
   const tabs = [
     { label: t("general") },
     { label: t("download_sources") },
+    { label: "License" },
     { label: t("account") },
   ];
 
   const renderContent = () => {
     if (currentTab === 0) return <SettingsGeneral />;
     if (currentTab === 1) return <SettingsDownloadSources />;
+    if (currentTab === 2) return <SettingsLicense />;
     return <div>Coming soon...</div>;
   };
 

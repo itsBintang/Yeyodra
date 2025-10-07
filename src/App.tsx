@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 import { useAppSelector } from "@/store";
-import { Sidebar, Header, Toast } from "./components";
+import { Sidebar, Header, Toast, LicenseActivationModal } from "./components";
 import { closeToast } from "@/features/toastSlice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { LicenseInfo } from "./types";
 import "./App.scss";
 
 export function App() {
@@ -11,6 +13,36 @@ export function App() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const toast = useAppSelector((state) => state.toast);
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
+  const [licenseChecked, setLicenseChecked] = useState(false);
+
+  // Check license on app startup
+  useEffect(() => {
+    const checkLicense = async () => {
+      try {
+        const license = await invoke<LicenseInfo>("get_license_info_local");
+        console.log("[Auth] License found:", license);
+        
+        // Check if expired
+        const expiresAt = new Date(license.expires_at);
+        const now = new Date();
+        
+        if (expiresAt < now) {
+          console.log("[Auth] License expired, showing activation modal");
+          setShowLicenseModal(true);
+        }
+      } catch (err) {
+        console.log("[Auth] No license found, showing activation modal");
+        setShowLicenseModal(true);
+      } finally {
+        setLicenseChecked(true);
+      }
+    };
+
+    if (!licenseChecked) {
+      checkLicense();
+    }
+  }, [licenseChecked]);
 
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
@@ -18,6 +50,11 @@ export function App() {
 
   const handleCloseToast = () => {
     dispatch(closeToast());
+  };
+
+  const handleLicenseActivated = (license: LicenseInfo) => {
+    console.log("[Auth] License activated:", license);
+    setShowLicenseModal(false);
   };
 
   return (
@@ -41,6 +78,12 @@ export function App() {
         type={toast.type}
         duration={toast.duration}
         onClose={handleCloseToast}
+      />
+
+      <LicenseActivationModal
+        visible={showLicenseModal}
+        onClose={() => setShowLicenseModal(false)}
+        onSuccess={handleLicenseActivated}
       />
     </>
   );

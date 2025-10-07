@@ -14,6 +14,7 @@ mod ludasavi;
 mod cloud_sync;
 mod lock;
 mod cache;
+mod auth;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats_cached, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details_cached, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -30,6 +31,7 @@ use game_launcher::launch_game;
 use ludasavi::{Ludasavi, LudusaviBackup};
 use cloud_sync::{CloudSync};
 use cache::{GameShopCache, GameStatsCache, CacheStats};
+use auth::{LicenseInfo};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -737,6 +739,49 @@ fn clear_all_caches(app_handle: tauri::AppHandle) -> Result<String, String> {
     Ok("All caches cleared successfully".to_string())
 }
 
+// ============ AUTHENTICATION COMMANDS ============
+
+#[tauri::command]
+fn get_device_id() -> Result<String, String> {
+    auth::get_device_id().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn activate_license_key(
+    app_handle: tauri::AppHandle,
+    key: String,
+) -> Result<LicenseInfo, String> {
+    auth::activate_license(app_handle, key)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn validate_license_key(
+    app_handle: tauri::AppHandle,
+) -> Result<LicenseInfo, String> {
+    auth::validate_license(app_handle)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_license_info_local(
+    app_handle: tauri::AppHandle,
+) -> Result<LicenseInfo, String> {
+    auth::get_license_info(app_handle)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn deactivate_license_key(
+    app_handle: tauri::AppHandle,
+) -> Result<String, String> {
+    auth::deactivate_license(app_handle)
+        .map_err(|e| e.to_string())?;
+    Ok("License deactivated successfully".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -798,7 +843,12 @@ pub fn run() {
             clear_game_stats_cache,
             get_cache_stats,
             clear_all_caches,
-            update_ludusavi_manifest
+            update_ludusavi_manifest,
+            get_device_id,
+            activate_license_key,
+            validate_license_key,
+            get_license_info_local,
+            deactivate_license_key
         ])
         .setup(|app| {
             // Initialize app state (similar to Hydra's loadState)

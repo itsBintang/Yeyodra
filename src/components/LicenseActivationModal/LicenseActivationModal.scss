@@ -1,0 +1,79 @@
+@import "@/scss/globals.scss";
+
+.license-activation-modal {
+  padding: $spacing-unit * 2;
+  max-width: 500px;
+
+  h2 {
+    margin: 0 0 $spacing-unit 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: $text-color;
+  }
+
+  .subtitle {
+    margin: 0 0 $spacing-unit * 2 0;
+    color: $body-color;
+    font-size: 14px;
+  }
+
+  .form-section {
+    margin-bottom: $spacing-unit * 2;
+
+    .device-info {
+      margin-top: $spacing-unit;
+      padding: $spacing-unit;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+
+      small {
+        color: $body-color;
+        font-size: 12px;
+        font-family: monospace;
+      }
+    }
+
+    .error-message {
+      margin-top: $spacing-unit;
+      padding: $spacing-unit;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 6px;
+      color: #ef4444;
+      font-size: 14px;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: $spacing-unit;
+    justify-content: flex-end;
+    padding-top: $spacing-unit * 2;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    button {
+      min-width: 100px;
+    }
+  }
+
+  .help-text {
+    margin-top: $spacing-unit * 2;
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: $body-color;
+
+      a {
+        color: $primary-color;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+

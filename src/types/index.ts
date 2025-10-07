@@ -381,3 +381,19 @@ export interface GameArtifactDownloadResponse {
   winePrefixPath: string | null;
 }
 
+// ============ AUTHENTICATION TYPES ============
+
+export interface LicenseInfo {
+  key: string;
+  device_id: string;
+  expires_at: string;
+  activated_at: string;
+}
+
+export interface LicenseStatus {
+  isActivated: boolean;
+  isExpired: boolean;
+  license: LicenseInfo | null;
+  daysRemaining: number | null;
+}
+

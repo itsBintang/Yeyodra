@@ -1,0 +1,12 @@
+{
+    "keys": [
+      {
+        "key": "CHAOS-A1B2-C3D4-E5F7",
+        "status": "available",
+        "activatedAt": null,
+        "expiresAt": null,
+        "deviceId": null,
+        "maxDevices": 1
+      }
+    ]
+  }
