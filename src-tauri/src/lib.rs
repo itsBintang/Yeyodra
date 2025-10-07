@@ -851,6 +851,15 @@ pub fn run() {
             deactivate_license_key
         ])
         .setup(|app| {
+            // Disable DevTools in production builds
+            #[cfg(not(debug_assertions))]
+            {
+                if let Some(window) = app.get_webview_window("main") {
+                    // Disable all DevTools access in production
+                    window.eval("delete window.__TAURI__").ok();
+                }
+            }
+            
             // Initialize app state (similar to Hydra's loadState)
             if let Err(e) = setup::initialize_app(app.handle()) {
                 eprintln!("Failed to initialize app: {}", e);
