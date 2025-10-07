@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { GameDetailsProvider, useGameDetails } from "@/contexts/game-details";
 import { CloudSyncProvider, useCloudSync } from "@/contexts/cloud-sync";
+import { useLibrary } from "@/hooks";
 import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
@@ -17,6 +18,7 @@ function GameDetailsContent() {
   const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
   const [showDlcManager, setShowDlcManager] = useState(false);
   const { setShowCloudSyncModal, showCloudSyncModal, setShowCloudSyncFilesModal, showCloudSyncFilesModal } = useCloudSync();
+  const { updateLibrary } = useLibrary();
 
   const handleCloudSaveClick = () => {
     setShowCloudSyncModal(true);
@@ -263,7 +265,13 @@ function GameDetailsContent() {
         gameName={gameTitle}
         gameImageUrl={stats?.assets?.libraryImageUrl || effectiveShopDetails?.header_image}
         hasRepacks={repacks && repacks.length > 0}
-        onDownloadComplete={updateGame}
+        onDownloadComplete={async () => {
+          // NEW FLOW: Auto-refresh library after download (game auto-added to library)
+          await Promise.all([
+            updateGame(),
+            updateLibrary(),
+          ]);
+        }}
       />
 
       {game && (

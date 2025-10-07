@@ -231,7 +231,7 @@ async fn download_game_steamtools(
     
     let result = download_steamtools(&app_id).await.map_err(|e| e.to_string())?;
     
-    // If successful, save to download history AND mark game as installed
+    // If successful, AUTO-ADD to library, save to download history, AND mark game as installed
     if result.success {
         println!("[DownloadHistory] Saving download for AppID: {}", app_id);
         
@@ -256,7 +256,72 @@ async fn download_game_steamtools(
             }
         }
         
-        // Mark game as installed in library if it exists
+        // AUTO-ADD to library if not already there
+        let game_in_library = match get_game_from_library(&app_handle, "steam", &app_id) {
+            Ok(Some(_)) => true,  // Game exists and not deleted
+            Ok(None) => false,     // Game not in library or is deleted
+            Err(_) => false,       // Error reading library
+        };
+        
+        if !game_in_library {
+            println!("[Library] Game not in library, auto-adding: {}", game_title);
+            
+            // Add game to library
+            match add_to_lib(&app_handle, "steam".to_string(), app_id.clone(), game_title.clone()) {
+                Ok(_) => {
+                    println!("[Library] ✓ Auto-added game to library: {}", game_title);
+                    
+                    // Try to fetch and save shop assets for better UI
+                    match fetch_steam_app_details_cached(&app_handle, &app_id, "english").await {
+                        Ok(shop_details) => {
+                            let assets = api::ShopAssets {
+                                object_id: app_id.clone(),
+                                shop: "steam".to_string(),
+                                title: game_title.clone(),
+                                icon_url: shop_details.capsule_image.clone(),
+                                library_hero_image_url: shop_details.header_image.clone(),
+                                library_image_url: shop_details.header_image.clone(),
+                                logo_image_url: None,
+                                logo_position: None,
+                                cover_image_url: None,
+                            };
+                            
+                            if let Err(e) = save_shop_assets(&app_handle, "steam".to_string(), app_id.clone(), assets) {
+                                eprintln!("[Library] ✗ Failed to save shop assets: {}", e);
+                            } else {
+                                println!("[Library] ✓ Saved shop assets for: {}", game_title);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("[Library] ✗ Failed to fetch shop details for assets: {}", e);
+                            // Fallback: use icon_url from download if available
+                            if let Some(icon) = icon_url.clone() {
+                                let fallback_assets = api::ShopAssets {
+                                    object_id: app_id.clone(),
+                                    shop: "steam".to_string(),
+                                    title: game_title.clone(),
+                                    icon_url: Some(icon),
+                                    library_hero_image_url: None,
+                                    library_image_url: None,
+                                    logo_image_url: None,
+                                    logo_position: None,
+                                    cover_image_url: None,
+                                };
+                                let _ = save_shop_assets(&app_handle, "steam".to_string(), app_id.clone(), fallback_assets);
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("[Library] ✗ Failed to auto-add game to library: {}", e);
+                    // Continue anyway
+                }
+            }
+        } else {
+            println!("[Library] Game already in library: {}", game_title);
+        }
+        
+        // Mark game as installed
         match mark_game_as_installed(&app_handle, "steam", &app_id) {
             Ok(_) => {
                 println!("[Library] ✓ Marked game as installed: {}", game_title);

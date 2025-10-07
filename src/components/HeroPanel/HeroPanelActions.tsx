@@ -3,14 +3,13 @@ import {
   GearIcon,
   HeartFillIcon,
   HeartIcon,
-  PlusCircleIcon,
   PlayIcon,
   SyncIcon,
   ToolsIcon,
 } from "@primer/octicons-react";
 import { Button } from "@/components";
 import { useGameDetails } from "@/contexts/game-details";
-import { useLibrary, useToast } from "@/hooks";
+import { useToast } from "@/hooks";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { useParams } from "react-router-dom";
@@ -21,10 +20,9 @@ type ActionMode = "update" | "play" | "settings";
 
 export function HeroPanelActions() {
   const { t } = useTranslation("game_details");
-  const { game, gameTitle, updateGame, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
-  const { updateLibrary } = useLibrary();
+  const { game, gameTitle, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
   const { showSuccessToast, showErrorToast } = useToast();
-  const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
+  const { objectId } = useParams<{ shop: string; objectId: string }>();
   
   const [toggleLibraryGameDisabled, setToggleLibraryGameDisabled] = useState(false);
   const [activeMode, setActiveMode] = useState<ActionMode>("play");
@@ -42,38 +40,6 @@ export function HeroPanelActions() {
       }
     }
   }, [game?.executablePath, game?.isInstalled]);
-
-  const handleAddToLibrary = async () => {
-    // HYDRA PATTERN: Use gameTitle from context (always available from URL)
-    // This works even when shopDetails is null (Steam API failed)
-    if (!shop || !objectId || !gameTitle) return;
-    
-    setToggleLibraryGameDisabled(true);
-    
-    try {
-      console.log("[AddToLibrary] Adding game:", { shop, objectId, title: gameTitle });
-      
-      const result = await invoke("add_game_to_library", {
-        shop,
-        objectId,
-        title: gameTitle,
-      });
-      
-      console.log("[AddToLibrary] Game added successfully:", result);
-      
-      // Update game state and library
-      await Promise.all([
-        updateGame(),
-        updateLibrary(),
-      ]);
-      
-      console.log("[AddToLibrary] State updated successfully");
-    } catch (error) {
-      console.error("Failed to add game to library:", error);
-    } finally {
-      setToggleLibraryGameDisabled(false);
-    }
-  };
 
   const handleDownloadClick = () => {
     setShowDownloadModal(true);
@@ -161,18 +127,17 @@ export function HeroPanelActions() {
     setShowGameOptionsModal(true);
   };
 
-  // Render different UI based on whether game is in library
-  // Game NOT in library: Show only "Add to Library" button
+  // NEW FLOW: Game NOT in library → Show "Download" button directly
+  // Download will auto-add to library after completion
   if (!game) {
     return (
       <Button
-        theme="outline"
-        disabled={toggleLibraryGameDisabled}
-        onClick={handleAddToLibrary}
+        theme="primary"
+        onClick={handleDownloadClick}
         className="hero-panel-actions__action"
       >
-        <PlusCircleIcon />
-        {t("add_to_library")}
+        <DownloadIcon />
+        {t("download")}
       </Button>
     );
   }
