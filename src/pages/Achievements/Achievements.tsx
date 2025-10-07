@@ -112,6 +112,9 @@ function AchievementsContent() {
 export function Achievements() {
   const { shop, objectId, title } = useParams<{ shop: string; objectId: string; title: string }>();
 
+  // HYDRA PATTERN: gameTitle from URL
+  const gameTitle = decodeURIComponent(title || "Unknown Game");
+
   if (!shop || !objectId || !title) {
     return (
       <div className="achievements__error">
@@ -122,7 +125,7 @@ export function Achievements() {
   }
 
   return (
-    <GameDetailsProvider objectId={objectId} shop={shop}>
+    <GameDetailsProvider objectId={objectId} shop={shop} gameTitle={gameTitle}>
       <AchievementsContent />
     </GameDetailsProvider>
   );

@@ -7,6 +7,7 @@ import { Button, GameCard, Hero } from "../components";
 import type { CatalogueGame, Steam250Game } from "../types";
 import { CatalogueCategory } from "../types";
 import { useNetworkMode } from "@/contexts/network-mode";
+import { buildGameDetailsPath } from "@/utils/navigation";
 import flameIconStatic from "../assets/icons/flame-static.png";
 import flameIconAnimated from "../assets/icons/flame-animated.gif";
 import starsIconAnimated from "../assets/icons/stars-animated.gif";
@@ -219,7 +220,16 @@ export function Home() {
                 <GameCard
                   key={result.objectId}
                   game={result}
-                  onClick={() => navigate(`/game/${result.shop}/${result.objectId}`)}
+                  onClick={() => {
+                    // HYDRA PATTERN: Ensure all required fields exist
+                    if (result.objectId && result.shop && result.title) {
+                      navigate(buildGameDetailsPath({
+                        objectId: result.objectId,
+                        shop: result.shop,
+                        title: result.title
+                      }));
+                    }
+                  }}
                 />
               ))}
         </section>

@@ -21,7 +21,7 @@ type ActionMode = "update" | "play" | "settings";
 
 export function HeroPanelActions() {
   const { t } = useTranslation("game_details");
-  const { game, shopDetails, updateGame, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
+  const { game, gameTitle, updateGame, setShowGameOptionsModal, setShowDownloadModal } = useGameDetails();
   const { updateLibrary } = useLibrary();
   const { showSuccessToast, showErrorToast } = useToast();
   const { shop, objectId } = useParams<{ shop: string; objectId: string }>();
@@ -44,17 +44,19 @@ export function HeroPanelActions() {
   }, [game?.executablePath, game?.isInstalled]);
 
   const handleAddToLibrary = async () => {
-    if (!shop || !objectId || !shopDetails?.name) return;
+    // HYDRA PATTERN: Use gameTitle from context (always available from URL)
+    // This works even when shopDetails is null (Steam API failed)
+    if (!shop || !objectId || !gameTitle) return;
     
     setToggleLibraryGameDisabled(true);
     
     try {
-      console.log("[AddToLibrary] Adding game:", { shop, objectId, title: shopDetails.name });
+      console.log("[AddToLibrary] Adding game:", { shop, objectId, title: gameTitle });
       
       const result = await invoke("add_game_to_library", {
         shop,
         objectId,
-        title: shopDetails.name,
+        title: gameTitle,
       });
       
       console.log("[AddToLibrary] Game added successfully:", result);
@@ -78,7 +80,8 @@ export function HeroPanelActions() {
   };
 
   const handleUpdateClick = async () => {
-    if (!objectId || !shopDetails?.name) return;
+    // HYDRA PATTERN: Use gameTitle from context
+    if (!objectId || !gameTitle) return;
     
     setToggleLibraryGameDisabled(true);
     setIsUpdating(true);
@@ -95,7 +98,7 @@ export function HeroPanelActions() {
       
       showSuccessToast(
         t("auto_update_enabled_title"),
-        t("auto_update_enabled_message", { gameName: shopDetails.name }),
+        t("auto_update_enabled_message", { gameName: gameTitle }),
         5000
       );
     } catch (error) {

@@ -66,7 +66,8 @@ export function Header() {
       
       if (isAppId && value.length > 0) {
         // Navigate to game details page with steam shop and appid
-        navigate(`/game/steam/${value}`);
+        // HYDRA PATTERN: Include title placeholder (will be fetched from API)
+        navigate(`/game/steam/${value}?title=Steam%20App%20${value}`);
         // Clear search
         dispatch(setFilters({ title: "" }));
         // Blur input

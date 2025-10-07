@@ -6,6 +6,7 @@ import { invoke } from "@tauri-apps/api/core";
 import classNames from "classnames";
 import type { CatalogueSearchResult } from "../../types";
 import { useLibrary } from "@/hooks";
+import { buildGameDetailsPath } from "@/utils/navigation";
 import "./GameItem.scss";
 
 export interface GameItemProps {
@@ -28,7 +29,8 @@ export function GameItem({ game }: GameItemProps) {
   }, [library, game.shop, game.objectId]);
 
   const handleClick = () => {
-    navigate(`/game/${game.shop}/${game.objectId}`);
+    // HYDRA PATTERN: Include title in URL for graceful degradation
+    navigate(buildGameDetailsPath(game));
   };
 
   const addGameToLibrary = async (

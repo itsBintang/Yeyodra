@@ -24,6 +24,7 @@ export interface GameDetailsContext {
   repacks: GameRepack[];
   game: LibraryGame | null;
   achievements: UserAchievement[] | null;
+  gameTitle: string; // HYDRA PATTERN: Fallback title for graceful degradation
   
   // Loading States
   isLoading: boolean;
@@ -45,6 +46,7 @@ const gameDetailsContext = createContext<GameDetailsContext>({
   repacks: [],
   game: null,
   achievements: null,
+  gameTitle: "",
   isLoading: true,
   showGameOptionsModal: false,
   setShowGameOptionsModal: () => {},
@@ -61,12 +63,14 @@ export const useGameDetails = () => useContext(gameDetailsContext);
 export interface GameDetailsProviderProps {
   objectId: string;
   shop: string;
+  gameTitle: string; // HYDRA PATTERN: Title from URL query param
   children: React.ReactNode;
 }
 
 export function GameDetailsProvider({
   objectId,
   shop,
+  gameTitle,
   children,
 }: GameDetailsProviderProps) {
   const dispatch = useAppDispatch();
@@ -262,6 +266,7 @@ export function GameDetailsProvider({
       repacks,
       game,
       achievements,
+      gameTitle, // HYDRA PATTERN: Always available from URL
       isLoading,
       showGameOptionsModal,
       setShowGameOptionsModal,
@@ -270,7 +275,7 @@ export function GameDetailsProvider({
       updateRepacks,
       updateGame,
     }),
-    [shopDetails, stats, repacks, game, achievements, isLoading, showGameOptionsModal, showDownloadModal, updateRepacks, updateGame]
+    [shopDetails, stats, repacks, game, achievements, gameTitle, isLoading, showGameOptionsModal, showDownloadModal, updateRepacks, updateGame]
   );
 
   return <Provider value={value}>{children}</Provider>;

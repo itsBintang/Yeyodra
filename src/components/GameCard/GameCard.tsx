@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge } from "../Badge/Badge";
+import { buildGameDetailsPath } from "@/utils/navigation";
 import SteamLogo from "@/assets/steam-logo.svg?react";
 import "./GameCard.scss";
 
@@ -52,8 +53,13 @@ export function GameCard({ game, ...props }: GameCardProps) {
   const remainingCount = uniqueRepackers.length - 3;
 
   const handleClick = useCallback(() => {
-    if (game.objectId && game.shop) {
-      navigate(`/game/${game.shop}/${game.objectId}`);
+    if (game.objectId && game.shop && game.title) {
+      // HYDRA PATTERN: Include title in URL for graceful degradation
+      navigate(buildGameDetailsPath({
+        shop: game.shop,
+        objectId: game.objectId,
+        title: game.title
+      }));
     }
   }, [game, navigate]);
 

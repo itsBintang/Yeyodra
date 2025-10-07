@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { GameDetailsProvider, useGameDetails } from "@/contexts/game-details";
 import { CloudSyncProvider, useCloudSync } from "@/contexts/cloud-sync";
 import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
@@ -231,8 +231,8 @@ function GameDetailsContent() {
               )}
             </div>
             
-            {/* HYDRA PATTERN: Sidebar always shows (handles null internally) */}
-            {effectiveShopDetails && (
+            {/* HYDRA PATTERN: Sidebar shows if ANY data available (achievements/stats/shopDetails) */}
+            {(effectiveShopDetails || stats || (achievements && achievements.length > 0)) && (
               <GameDetailsSidebar 
                 shopDetails={effectiveShopDetails} 
                 stats={stats} 
@@ -292,6 +292,11 @@ function GameDetailsContent() {
 
 export function GameDetails() {
   const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
+  const [searchParams] = useSearchParams();
+  
+  // HYDRA PATTERN: Get title from URL query params
+  // This ensures title is ALWAYS available, even if Steam API fails
+  const gameTitle = searchParams.get("title") || "Unknown Game";
 
   if (!objectId || !shop) {
     return (
@@ -303,7 +308,7 @@ export function GameDetails() {
   }
 
   return (
-    <GameDetailsProvider objectId={objectId} shop={shop}>
+    <GameDetailsProvider objectId={objectId} shop={shop} gameTitle={gameTitle}>
       <CloudSyncWrapper objectId={objectId} shop={shop} />
     </GameDetailsProvider>
   );

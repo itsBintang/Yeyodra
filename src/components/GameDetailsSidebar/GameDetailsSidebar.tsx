@@ -9,7 +9,7 @@ import { GameLanguageSection } from "./GameLanguageSection";
 import "./GameDetailsSidebar.scss";
 
 interface GameDetailsSidebarProps {
-  shopDetails: ShopDetails;
+  shopDetails?: ShopDetails | null; // HYDRA PATTERN: Optional - Steam API might fail
   stats: GameStats | null;
   achievements?: UserAchievement[] | null;
   shop?: string;
@@ -27,31 +27,31 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
 
   // Format date
   const releaseDate = useMemo(() => {
-    if (!shopDetails.release_date?.date) return "TBA";
+    if (!shopDetails?.release_date?.date) return "TBA";
     return shopDetails.release_date.date;
-  }, [shopDetails.release_date]);
+  }, [shopDetails?.release_date]);
 
   // Get genres
   const genres = useMemo(() => {
-    if (!shopDetails.genres || shopDetails.genres.length === 0) return null;
+    if (!shopDetails?.genres || shopDetails.genres.length === 0) return null;
     return shopDetails.genres.map((g) => g.description).join(", ");
-  }, [shopDetails.genres]);
+  }, [shopDetails?.genres]);
 
   // Get developers
   const developers = useMemo(() => {
-    if (!shopDetails.developers || shopDetails.developers.length === 0) return null;
+    if (!shopDetails?.developers || shopDetails.developers.length === 0) return null;
     return shopDetails.developers.join(", ");
-  }, [shopDetails.developers]);
+  }, [shopDetails?.developers]);
 
   // Get publishers
   const publishers = useMemo(() => {
-    if (!shopDetails.publishers || shopDetails.publishers.length === 0) return null;
+    if (!shopDetails?.publishers || shopDetails.publishers.length === 0) return null;
     return shopDetails.publishers.join(", ");
-  }, [shopDetails.publishers]);
+  }, [shopDetails?.publishers]);
 
   return (
     <aside className="game-details-sidebar">
-      {/* Achievements Section */}
+      {/* HYDRA PATTERN: Achievements from Hydra API (independent of Steam API) */}
       {achievements && achievements.length > 0 && (
         <SidebarSection 
           title={t("achievements_count", {
@@ -63,12 +63,12 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
             achievements={achievements}
             shop={shop}
             objectId={objectId}
-            gameTitle={shopDetails.name}
+            gameTitle={shopDetails?.name || "Game"}
           />
         </SidebarSection>
       )}
 
-      {/* Stats Section (if available from Hydra) */}
+      {/* HYDRA PATTERN: Stats from Hydra API (independent of Steam API) */}
       {stats && (
         <SidebarSection title={t("stats")}>
           <div className="game-details-sidebar__stats">
@@ -95,8 +95,8 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
         </SidebarSection>
       )}
 
-      {/* System Requirements */}
-      {(shopDetails.pc_requirements?.minimum || shopDetails.pc_requirements?.recommended) && (
+      {/* System Requirements (from Steam API - might be unavailable) */}
+      {shopDetails && (shopDetails.pc_requirements?.minimum || shopDetails.pc_requirements?.recommended) && (
         <SidebarSection title={t("requirements")}>
           <div className="game-details-sidebar__requirement-buttons">
             <Button
@@ -127,53 +127,57 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
         </SidebarSection>
       )}
 
-      {/* Game Information */}
-      <SidebarSection title={t("information")}>
-        <div className="game-details-sidebar__info-list">
-          {/* Release Date */}
-          <div className="game-details-sidebar__info-item">
-            <span className="game-details-sidebar__info-label">Release Date</span>
-            <span className="game-details-sidebar__info-value">{releaseDate}</span>
-          </div>
+      {/* Game Information (from Steam API - might be unavailable) */}
+      {shopDetails && (
+        <>
+          <SidebarSection title={t("information")}>
+            <div className="game-details-sidebar__info-list">
+              {/* Release Date */}
+              <div className="game-details-sidebar__info-item">
+                <span className="game-details-sidebar__info-label">Release Date</span>
+                <span className="game-details-sidebar__info-value">{releaseDate}</span>
+              </div>
 
-          {/* Developers */}
-          {developers && (
-            <div className="game-details-sidebar__info-item">
-              <span className="game-details-sidebar__info-label">Developer</span>
-              <span className="game-details-sidebar__info-value">{developers}</span>
+              {/* Developers */}
+              {developers && (
+                <div className="game-details-sidebar__info-item">
+                  <span className="game-details-sidebar__info-label">Developer</span>
+                  <span className="game-details-sidebar__info-value">{developers}</span>
+                </div>
+              )}
+
+              {/* Publishers */}
+              {publishers && (
+                <div className="game-details-sidebar__info-item">
+                  <span className="game-details-sidebar__info-label">Publisher</span>
+                  <span className="game-details-sidebar__info-value">{publishers}</span>
+                </div>
+              )}
+
+              {/* Genres */}
+              {genres && (
+                <div className="game-details-sidebar__info-item">
+                  <span className="game-details-sidebar__info-label">Genres</span>
+                  <span className="game-details-sidebar__info-value">{genres}</span>
+                </div>
+              )}
+
+              {/* Free to Play */}
+              {shopDetails.is_free && (
+                <div className="game-details-sidebar__info-item">
+                  <span className="game-details-sidebar__info-label">Price</span>
+                  <span className="game-details-sidebar__info-value game-details-sidebar__info-value--free">
+                    Free to Play
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+          </SidebarSection>
 
-          {/* Publishers */}
-          {publishers && (
-            <div className="game-details-sidebar__info-item">
-              <span className="game-details-sidebar__info-label">Publisher</span>
-              <span className="game-details-sidebar__info-value">{publishers}</span>
-            </div>
-          )}
-
-          {/* Genres */}
-          {genres && (
-            <div className="game-details-sidebar__info-item">
-              <span className="game-details-sidebar__info-label">Genres</span>
-              <span className="game-details-sidebar__info-value">{genres}</span>
-            </div>
-          )}
-
-          {/* Free to Play */}
-          {shopDetails.is_free && (
-            <div className="game-details-sidebar__info-item">
-              <span className="game-details-sidebar__info-label">Price</span>
-              <span className="game-details-sidebar__info-value game-details-sidebar__info-value--free">
-                Free to Play
-              </span>
-            </div>
-          )}
-        </div>
-      </SidebarSection>
-
-      {/* Language Support */}
-      <GameLanguageSection shopDetails={shopDetails} />
+          {/* Language Support */}
+          <GameLanguageSection shopDetails={shopDetails} />
+        </>
+      )}
     </aside>
   );
 }
