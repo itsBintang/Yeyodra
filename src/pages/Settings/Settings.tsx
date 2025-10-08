@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { SettingsGeneral } from "./SettingsGeneral";
 import { SettingsDownloadSources } from "./SettingsDownloadSources";
-import SettingsLicense from "./SettingsLicense";
+import { SettingsImportLibrary } from "./SettingsImportLibrary";
+import { SettingsCloudSave } from "./SettingsCloudSave";
 import { SettingsAccount } from "./SettingsAccount";
 import "./Settings.scss";
 
@@ -14,15 +15,17 @@ export function Settings() {
   const tabs = [
     { label: t("general") },
     { label: t("download_sources") },
-    { label: "License" },
+    { label: "Import Library" },
+    { label: "Cloud Save" },
     { label: t("account") },
   ];
 
   const renderContent = () => {
     if (currentTab === 0) return <SettingsGeneral />;
     if (currentTab === 1) return <SettingsDownloadSources />;
-    if (currentTab === 2) return <SettingsLicense />;
-    if (currentTab === 3) return <SettingsAccount />;
+    if (currentTab === 2) return <SettingsImportLibrary />;
+    if (currentTab === 3) return <SettingsCloudSave />;
+    if (currentTab === 4) return <SettingsAccount />;
     return <div>Coming soon...</div>;
   };
 

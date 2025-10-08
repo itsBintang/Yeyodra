@@ -15,6 +15,7 @@ mod cloud_sync;
 mod lock;
 mod cache;
 mod auth;
+mod library_scanner;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats_cached, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details_cached, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -32,6 +33,7 @@ use ludasavi::{Ludasavi, LudusaviBackup};
 use cloud_sync::{CloudSync};
 use cache::{GameShopCache, GameStatsCache, CacheStats};
 use auth::{LicenseInfo};
+use library_scanner::{ScanResult, ScannedGame};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -782,6 +784,34 @@ fn deactivate_license_key(
     Ok("License deactivated successfully".to_string())
 }
 
+// ============ LIBRARY SCANNER COMMANDS ============
+
+#[tauri::command]
+fn scan_steam_library_folder(
+    app_handle: tauri::AppHandle,
+) -> Result<ScanResult, String> {
+    library_scanner::scan_steam_library(&app_handle)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn import_scanned_games(
+    app_handle: tauri::AppHandle,
+    games: Vec<ScannedGame>,
+) -> Result<usize, String> {
+    library_scanner::import_games_to_library(&app_handle, games)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn fetch_game_names(
+    app_ids: Vec<String>,
+) -> Result<Vec<(String, String)>, String> {
+    library_scanner::fetch_game_names_batch(app_ids)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -848,7 +878,10 @@ pub fn run() {
             activate_license_key,
             validate_license_key,
             get_license_info_local,
-            deactivate_license_key
+            deactivate_license_key,
+            scan_steam_library_folder,
+            import_scanned_games,
+            fetch_game_names
         ])
         .setup(|app| {
             // Disable DevTools in production builds

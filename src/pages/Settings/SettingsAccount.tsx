@@ -10,7 +10,6 @@ export function SettingsAccount() {
   const [license, setLicense] = useState<LicenseInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
-  const [isUpdatingManifest, setIsUpdatingManifest] = useState(false);
 
   useEffect(() => {
     loadLicenseInfo();
@@ -71,26 +70,6 @@ export function SettingsAccount() {
         String(error),
         4000
       );
-    }
-  };
-
-  const handleUpdateManifest = async () => {
-    setIsUpdatingManifest(true);
-    try {
-      await invoke("update_ludusavi_manifest");
-      showSuccessToast(
-        "Game Database Updated",
-        "Cloud save feature can now detect the latest games",
-        4000
-      );
-    } catch (error) {
-      showErrorToast(
-        "Update Failed",
-        String(error),
-        4000
-      );
-    } finally {
-      setIsUpdatingManifest(false);
     }
   };
 
@@ -197,28 +176,6 @@ export function SettingsAccount() {
             Deactivate License
           </Button>
         </div>
-      </div>
-
-      {/* Cloud Save Section */}
-      <div className="settings-account__section">
-        <h3 className="settings-account__section-title">Cloud Save</h3>
-        <p className="settings-account__description">
-          Update the game database to enable cloud save detection for newly released games.
-          This downloads the latest manifest from Ludusavi.
-        </p>
-
-        <Button
-          theme="primary"
-          onClick={handleUpdateManifest}
-          disabled={isUpdatingManifest}
-        >
-          {isUpdatingManifest ? "Updating..." : "Update Game Database"}
-        </Button>
-
-        <p className="settings-account__hint">
-          ℹ️ The game database is automatically updated on app startup. 
-          Use this button if you want to manually update it.
-        </p>
       </div>
     </div>
   );
