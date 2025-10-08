@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { useToast } from "@/hooks";
 import { useLibrary } from "@/hooks/useLibrary";
@@ -19,6 +20,7 @@ interface ScanResult {
 }
 
 export function SettingsImportLibrary() {
+  const { t } = useTranslation("settings");
   const { showSuccessToast, showErrorToast } = useToast();
   const { updateLibrary } = useLibrary();
   const [isScanning, setIsScanning] = useState(false);
@@ -152,11 +154,10 @@ export function SettingsImportLibrary() {
     <div className="settings-import-library">
       <div className="settings-import-library__header">
         <p className="settings-import-library__description">
-          Scan your SteamTools folder to automatically import installed games to
-          your library.
+          {t("import_library_description")}
         </p>
         <p className="settings-import-library__path">
-          Scan path:{" "}
+          {t("import_library_path")}{" "}
           <code>C:\Program Files (x86)\Steam\config\stplug-in</code>
         </p>
       </div>
@@ -167,16 +168,16 @@ export function SettingsImportLibrary() {
           disabled={isScanning || isImporting}
           theme="primary"
         >
-          {isScanning ? "Scanning..." : "Scan SteamTools Folder"}
+          {isScanning ? t("scanning") : t("scan_library")}
         </Button>
 
         {scanResult && scanResult.games.length > 0 && (
           <>
             <Button onClick={selectAll} disabled={isImporting} theme="outline">
-              Select All New
+              {t("select_all")}
             </Button>
             <Button onClick={deselectAll} disabled={isImporting} theme="outline">
-              Deselect All
+              {t("deselect_all")}
             </Button>
             <Button
               onClick={handleImport}
@@ -184,8 +185,8 @@ export function SettingsImportLibrary() {
               theme="primary"
             >
               {isImporting
-                ? "Importing..."
-                : `Import Selected (${selectedGames.size})`}
+                ? t("importing")
+                : `${t("import_selected")} (${selectedGames.size})`}
             </Button>
           </>
         )}
@@ -195,15 +196,15 @@ export function SettingsImportLibrary() {
         <div className="settings-import-library__results">
           <div className="settings-import-library__stats">
             <div className="settings-import-library__stats-item">
-              <label>Found</label>
+              <label>{t("found")}</label>
               <strong>{scanResult.total_found}</strong>
             </div>
             <div className="settings-import-library__stats-item">
-              <label>New Games</label>
+              <label>{t("new_games")}</label>
               <strong>{scanResult.total_found - scanResult.already_in_library}</strong>
             </div>
             <div className="settings-import-library__stats-item">
-              <label>Already in Library</label>
+              <label>{t("already_in_library")}</label>
               <strong>{scanResult.already_in_library}</strong>
             </div>
           </div>
@@ -228,7 +229,7 @@ export function SettingsImportLibrary() {
                   <span className="game-item__app-id">AppID: {game.app_id}</span>
                 </div>
                 {game.is_already_in_library && (
-                  <span className="game-item__badge">Already in Library</span>
+                  <span className="game-item__badge">{t("in_library")}</span>
                 )}
               </div>
             ))}
@@ -238,8 +239,8 @@ export function SettingsImportLibrary() {
 
       {scanResult && scanResult.games.length === 0 && (
         <div className="settings-import-library__empty">
-          <p>No games found in SteamTools folder.</p>
-          <p>Make sure you have downloaded games using SteamTools.</p>
+          <p>{t("no_games_found")}</p>
+          <p>{t("no_games_found_description")}</p>
         </div>
       )}
     </div>

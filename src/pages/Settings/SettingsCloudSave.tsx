@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { useToast } from "@/hooks";
 import "./SettingsCloudSave.scss";
 
 export function SettingsCloudSave() {
+  const { t } = useTranslation("settings");
   const { showSuccessToast, showErrorToast } = useToast();
   const [isUpdatingManifest, setIsUpdatingManifest] = useState(false);
 
@@ -26,10 +28,9 @@ export function SettingsCloudSave() {
   return (
     <div className="settings-cloud-save">
       <div className="settings-cloud-save__section">
-        <h3 className="settings-cloud-save__section-title">Game Database</h3>
+        <h3 className="settings-cloud-save__section-title">{t("game_database")}</h3>
         <p className="settings-cloud-save__description">
-          Update the game database to enable cloud save detection for newly released games.
-          This downloads the latest save file locations and configurations.
+          {t("cloud_save_description")}
         </p>
 
         <Button
@@ -37,48 +38,46 @@ export function SettingsCloudSave() {
           onClick={handleUpdateManifest}
           disabled={isUpdatingManifest}
         >
-          {isUpdatingManifest ? "Updating..." : "Update Game Database"}
+          {isUpdatingManifest ? t("updating") : t("update_game_database")}
         </Button>
 
         <div className="settings-cloud-save__hint">
           <span className="settings-cloud-save__hint-icon">ℹ️</span>
           <p>
-            The game database is automatically updated on app startup. 
-            Use this button if you want to manually update it.
+            {t("database_hint")}
           </p>
         </div>
       </div>
 
       <div className="settings-cloud-save__section">
-        <h3 className="settings-cloud-save__section-title">How Cloud Save Works</h3>
+        <h3 className="settings-cloud-save__section-title">{t("how_cloud_save_works")}</h3>
         <div className="settings-cloud-save__info">
           <p>
-            Cloud Save feature automatically detects and backs up your game saves using an advanced detection system.
-            The database contains save file locations and patterns for thousands of games across all platforms.
+            {t("cloud_save_info")}
           </p>
           
           <div className="settings-cloud-save__features">
             <div className="settings-cloud-save__feature-item">
               <span className="settings-cloud-save__feature-icon">💾</span>
               <div>
-                <h4>Automatic Detection</h4>
-                <p>Automatically finds save files for supported games</p>
+                <h4>{t("automatic_detection")}</h4>
+                <p>{t("automatic_detection_description")}</p>
               </div>
             </div>
 
             <div className="settings-cloud-save__feature-item">
               <span className="settings-cloud-save__feature-icon">☁️</span>
               <div>
-                <h4>Local Backups</h4>
-                <p>Creates local backups of your game saves</p>
+                <h4>{t("local_backups")}</h4>
+                <p>{t("local_backups_description")}</p>
               </div>
             </div>
 
             <div className="settings-cloud-save__feature-item">
               <span className="settings-cloud-save__feature-icon">🔄</span>
               <div>
-                <h4>Easy Restore</h4>
-                <p>Restore your saves anytime from backup history</p>
+                <h4>{t("easy_restore")}</h4>
+                <p>{t("easy_restore_description")}</p>
               </div>
             </div>
           </div>

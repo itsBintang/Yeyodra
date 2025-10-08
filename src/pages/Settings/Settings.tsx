@@ -15,8 +15,8 @@ export function Settings() {
   const tabs = [
     { label: t("general") },
     { label: t("download_sources") },
-    { label: "Import Library" },
-    { label: "Cloud Save" },
+    { label: t("import_library") },
+    { label: t("cloud_save") },
     { label: t("account") },
   ];
 
