@@ -43,9 +43,13 @@ async fn fetch_game_name(app_id: &str) -> Result<String> {
 }
 
 /// Scan SteamTools folder for installed games (sync version - just collect App IDs)
-pub fn scan_steam_library(app_handle: &AppHandle) -> Result<ScanResult> {
-    // Default SteamTools path
-    let steamtools_path = PathBuf::from(r"C:\Program Files (x86)\Steam\config\stplug-in");
+pub fn scan_steam_library(app_handle: &AppHandle, custom_path: Option<String>) -> Result<ScanResult> {
+    // Use custom path if provided, otherwise use default
+    let steamtools_path = if let Some(path) = custom_path {
+        PathBuf::from(path)
+    } else {
+        PathBuf::from(r"C:\Program Files (x86)\Steam\config\stplug-in")
+    };
     
     if !steamtools_path.exists() {
         return Err(anyhow!("SteamTools folder not found at: {:?}", steamtools_path));

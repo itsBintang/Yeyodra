@@ -100,6 +100,17 @@ export function SettingsAccount() {
     }
   };
 
+  const isLifetimeLicense = (expiresAt: string) => {
+    try {
+      const now = new Date();
+      const expiryDate = new Date(expiresAt);
+      const yearsFromNow = (expiryDate.getTime() - now.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      return yearsFromNow > 100; // More than 100 years = lifetime
+    } catch {
+      return false;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="settings-account">
@@ -118,6 +129,7 @@ export function SettingsAccount() {
 
   const daysRemaining = getDaysRemaining(license.expires_at);
   const isExpired = daysRemaining <= 0;
+  const isLifetime = isLifetimeLicense(license.expires_at);
 
   return (
     <div className="settings-account">
@@ -148,14 +160,33 @@ export function SettingsAccount() {
           <div className="settings-account__info-item">
             <span className="settings-account__info-label">Expires On</span>
             <span className="settings-account__info-value">
-              {formatDate(license.expires_at)}
+              {isLifetime ? (
+                <span style={{ color: '#adff2f', fontWeight: 'bold' }}>♾️ LIFETIME</span>
+              ) : (
+                formatDate(license.expires_at)
+              )}
             </span>
+          </div>
+
+          <div className="settings-account__info-item">
+            <span className="settings-account__info-label">License Type</span>
+            <div className="settings-account__badge-container">
+              {isLifetime ? (
+                <span className="settings-account__badge settings-account__badge--admin">
+                  👑 ADMIN
+                </span>
+              ) : (
+                <span className="settings-account__badge settings-account__badge--premium">
+                  ✨ PREMIUM
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="settings-account__info-item">
             <span className="settings-account__info-label">Status</span>
             <span className={`settings-account__status ${isExpired ? "settings-account__status--expired" : "settings-account__status--active"}`}>
-              {isExpired ? "Expired" : `Active (${daysRemaining} days remaining)`}
+              {isExpired ? "Expired" : isLifetime ? "♾️ Lifetime Active" : `Active (${daysRemaining} days remaining)`}
             </span>
           </div>
         </div>

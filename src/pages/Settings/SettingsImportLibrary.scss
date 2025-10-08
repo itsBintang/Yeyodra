@@ -35,6 +35,89 @@
     }
   }
 
+  &__path-section {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit);
+  }
+
+  &__path-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  &__path-input-group {
+    display: flex;
+    gap: calc(globals.$spacing-unit);
+    align-items: center;
+  }
+
+  &__path-input,
+  &__path-display {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 1.5);
+    border-radius: 6px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 13px;
+    color: globals.$brand-teal;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
+  }
+
+  &__path-input {
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: globals.$brand-teal;
+      box-shadow: 0 0 0 3px rgba(28, 151, 73, 0.15);
+    }
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &__path-display {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__path-button {
+    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 2);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
   &__actions {
     display: flex;
     gap: calc(globals.$spacing-unit * 1.5);

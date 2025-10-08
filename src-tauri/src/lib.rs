@@ -789,8 +789,9 @@ fn deactivate_license_key(
 #[tauri::command]
 fn scan_steam_library_folder(
     app_handle: tauri::AppHandle,
+    custom_path: Option<String>,
 ) -> Result<ScanResult, String> {
-    library_scanner::scan_steam_library(&app_handle)
+    library_scanner::scan_steam_library(&app_handle, custom_path)
         .map_err(|e| e.to_string())
 }
 

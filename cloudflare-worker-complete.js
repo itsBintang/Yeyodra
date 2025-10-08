@@ -49,7 +49,11 @@ async function handleActivate(request, env) {
 
     // Key is available - activate it
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+    
+    // Calculate expiration based on key's expiresInDays (supports lifetime)
+    // If expiresInDays >= 99999, it's a lifetime license (273+ years)
+    const daysToAdd = licenseKey.expiresInDays || 365; // Default 1 year
+    const expiresAt = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
 
     licenseKey.status = "used";
     licenseKey.deviceId = deviceId;
@@ -171,7 +175,8 @@ async function handleAdminAddKey(request, env) {
       activatedAt: null,
       expiresAt: null,
       deviceId: null,
-      maxDevices: maxDevices
+      maxDevices: maxDevices,
+      expiresInDays: expiresInDays // Store for activation time
     });
 
     // Save back to R2

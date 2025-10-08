@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 import { useToast } from "@/hooks";
@@ -27,6 +28,26 @@ export function SettingsImportLibrary() {
   const [isImporting, setIsImporting] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [selectedGames, setSelectedGames] = useState<Set<string>>(new Set());
+  const [customPath, setCustomPath] = useState("C:\\Program Files (x86)\\Steam\\config\\stplug-in");
+
+  const handleBrowsePath = async () => {
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: "Select SteamTools Folder",
+        defaultPath: customPath,
+      });
+
+      if (selected && typeof selected === "string") {
+        setCustomPath(selected);
+        showSuccessToast("Path updated successfully");
+      }
+    } catch (error) {
+      console.error("Failed to open directory dialog:", error);
+      showErrorToast(`Failed to select folder: ${error}`);
+    }
+  };
 
   const handleScan = async (onlyFetchNew = false) => {
     setIsScanning(true);
@@ -37,8 +58,10 @@ export function SettingsImportLibrary() {
     }
 
     try {
-      // Step 1: Scan folder for App IDs
-      const result = await invoke<ScanResult>("scan_steam_library_folder");
+      // Step 1: Scan folder for App IDs (with custom path)
+      const result = await invoke<ScanResult>("scan_steam_library_folder", {
+        customPath: customPath || undefined,
+      });
       
       // Step 2: Only fetch names for NEW games (not already in library)
       const newGames = result.games.filter((g) => !g.is_already_in_library);
@@ -117,7 +140,9 @@ export function SettingsImportLibrary() {
       );
 
       // Just re-scan without fetching names again (lightweight refresh)
-      const result = await invoke<ScanResult>("scan_steam_library_folder");
+      const result = await invoke<ScanResult>("scan_steam_library_folder", {
+        customPath: customPath || undefined,
+      });
       setScanResult(result);
       setSelectedGames(new Set()); // Clear selection
     } catch (error) {
@@ -156,10 +181,26 @@ export function SettingsImportLibrary() {
         <p className="settings-import-library__description">
           {t("import_library_description")}
         </p>
-        <p className="settings-import-library__path">
-          {t("import_library_path")}{" "}
-          <code>C:\Program Files (x86)\Steam\config\stplug-in</code>
-        </p>
+        
+        <div className="settings-import-library__path-section">
+          <label className="settings-import-library__path-label">
+            {t("import_library_path")}
+          </label>
+          <div className="settings-import-library__path-input-group">
+            <code className="settings-import-library__path-display">
+              {customPath}
+            </code>
+            <button
+              type="button"
+              className="settings-import-library__path-button"
+              onClick={handleBrowsePath}
+              disabled={isScanning || isImporting}
+              title="Browse for folder"
+            >
+              📁 Browse
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="settings-import-library__actions">

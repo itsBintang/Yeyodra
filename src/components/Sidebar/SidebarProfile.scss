@@ -36,14 +36,137 @@
     min-width: 0;
   }
 
+  &__name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
   &__button-title {
     font-weight: bold;
     font-size: globals.$body-font-size;
-    width: 100%;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex-shrink: 1;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    
+    &--admin {
+      background: linear-gradient(135deg, #4B0082 0%, #6A0DAD 50%, #8B00FF 100%);
+      color: #ffffff;
+      box-shadow: 
+        0 0 12px rgba(106, 13, 173, 0.6),
+        0 2px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+      animation: admin-shimmer 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
+      border: 1px solid rgba(139, 0, 255, 0.4);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.3);
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255, 215, 0, 0.15),
+          transparent
+        );
+        animation: shine 3s infinite;
+      }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to right,
+          transparent 0%,
+          rgba(255, 215, 0, 0.1) 50%,
+          transparent 100%
+        );
+        animation: shimmer-gold 2s infinite;
+      }
+    }
+    
+    &--premium {
+      background: linear-gradient(135deg, #e94057 0%, #f27121 100%);
+      color: #ffffff;
+      box-shadow: 
+        0 0 8px rgba(233, 64, 87, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(233, 64, 87, 0.4);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 
+        0 0 12px rgba(106, 13, 173, 0.6),
+        0 2px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    }
+    50% {
+      box-shadow: 
+        0 0 20px rgba(139, 0, 255, 0.8),
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  @keyframes admin-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+  }
+
+  @keyframes shimmer-gold {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
 
   &__friends-button {
