@@ -7,8 +7,8 @@ import { HeroPanel } from "@/components/HeroPanel/HeroPanel";
 import { DescriptionHeader } from "@/components/DescriptionHeader/DescriptionHeader";
 import { GallerySlider } from "@/components/GallerySlider/GallerySlider";
 import { GameDetailsSidebar } from "@/components/GameDetailsSidebar/GameDetailsSidebar";
-import { GameOptionsModal, DownloadModal, DlcManager, CloudSyncModal, CloudSyncFilesModal } from "@/components";
-import { UnlockIcon } from "@primer/octicons-react";
+import { GameOptionsModal, DownloadModal, DlcManager, CloudSyncModal, CloudSyncFilesModal, CrackingModal } from "@/components";
+import { UnlockIcon, ToolsIcon } from "@primer/octicons-react";
 import cloudIconAnimated from "@/assets/icons/cloud-animated.gif";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "./GameDetails.scss";
@@ -17,6 +17,7 @@ function GameDetailsContent() {
   const { shopDetails, stats, isLoading, game, repacks, achievements, showGameOptionsModal, setShowGameOptionsModal, showDownloadModal, setShowDownloadModal, updateGame } = useGameDetails();
   const { objectId, shop } = useParams<{ objectId: string; shop: string }>();
   const [showDlcManager, setShowDlcManager] = useState(false);
+  const [showCrackingModal, setShowCrackingModal] = useState(false);
   const { setShowCloudSyncModal, showCloudSyncModal, setShowCloudSyncFilesModal, showCloudSyncFilesModal } = useCloudSync();
   const { updateLibrary } = useLibrary();
 
@@ -26,6 +27,10 @@ function GameDetailsContent() {
 
   const handleManageDlcs = () => {
     setShowDlcManager(true);
+  };
+
+  const handleCrackGame = () => {
+    setShowCrackingModal(true);
   };
 
   // For custom games, create mock shopDetails from library game data
@@ -166,15 +171,25 @@ function GameDetailsContent() {
                 )}
 
                 <div className="game-details__hero-buttons game-details__hero-buttons--right">
-                  {game && (
-                    <button
-                      type="button"
-                      className="game-details__dlc-button"
-                      onClick={handleManageDlcs}
-                    >
-                      <UnlockIcon size={20} />
-                      DLC Unlocker
-                    </button>
+                  {game && shop === "steam" && (
+                    <>
+                      <button
+                        type="button"
+                        className="game-details__crack-button"
+                        onClick={handleCrackGame}
+                      >
+                        <ToolsIcon size={20} />
+                        Cracking
+                      </button>
+                      <button
+                        type="button"
+                        className="game-details__dlc-button"
+                        onClick={handleManageDlcs}
+                      >
+                        <UnlockIcon size={20} />
+                        DLC Unlocker
+                      </button>
+                    </>
                   )}
                   <button
                     type="button"
@@ -275,13 +290,23 @@ function GameDetailsContent() {
       />
 
       {game && (
-        <DlcManager
-          visible={showDlcManager}
-          onClose={() => setShowDlcManager(false)}
-          appId={objectId || ""}
-          gameName={gameTitle}
-          gameLogoUrl={game.logoImageUrl || undefined}
-        />
+        <>
+          <DlcManager
+            visible={showDlcManager}
+            onClose={() => setShowDlcManager(false)}
+            appId={objectId || ""}
+            gameName={gameTitle}
+            gameLogoUrl={game.logoImageUrl || undefined}
+          />
+          
+          <CrackingModal
+            visible={showCrackingModal}
+            onClose={() => setShowCrackingModal(false)}
+            appId={objectId || ""}
+            gameName={gameTitle}
+            gameLogoUrl={game.logoImageUrl || undefined}
+          />
+        </>
       )}
 
       <CloudSyncModal

@@ -16,6 +16,9 @@ mod lock;
 mod cache;
 mod auth;
 mod library_scanner;
+mod cracker;
+
+use tauri::Emitter;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats_cached, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details_cached, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};
@@ -815,6 +818,9 @@ async fn fetch_game_names(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize logging for cracker modules
+    env_logger::init();
+    
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -882,7 +888,10 @@ pub fn run() {
             deactivate_license_key,
             scan_steam_library_folder,
             import_scanned_games,
-            fetch_game_names
+            fetch_game_names,
+            cracker::command::cmd_apply_crack,
+            cracker::command::cmd_setup_cracker,
+            cracker::command::cmd_check_cracker_ready
         ])
         .setup(|app| {
             // Disable DevTools in production builds
@@ -899,6 +908,31 @@ pub fn run() {
                 eprintln!("Failed to initialize app: {}", e);
                 // Don't prevent app from starting, just log the error
             }
+            
+            // Setup cracker dependencies in background (like BetterSteamAutoCracker)
+            // This will NOT block app startup - setup runs silently in background
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn({
+                let app_handle = app_handle.clone();
+                async move {
+                    match cracker::setup::setup(app_handle.clone()).await {
+                        Ok(_) => {
+                            eprintln!("[Cracker] ✓ Dependencies setup completed");
+                            if let Err(e) = app_handle.emit("cracker-ready", true) {
+                                eprintln!("[Cracker] Failed to emit ready event: {}", e);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("[Cracker] ✗ Setup failed: {}", e);
+                            // Emit error event to frontend so user can retry manually
+                            if let Err(emit_err) = app_handle.emit("cracker-setup-error", format!("{}", e)) {
+                                eprintln!("[Cracker] Failed to emit error: {}", emit_err);
+                            }
+                        }
+                    }
+                }
+            });
+            
             Ok(())
         })
         .on_window_event(|_window, event| {

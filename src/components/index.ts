@@ -32,4 +32,5 @@ export { AchievementsList } from "./AchievementsList/AchievementsList";
 export { DlcManager } from "./DlcManager/DlcManager";
 export { CloudSyncModal, CloudSyncFilesModal } from "./CloudSyncModal";
 export { AddCustomGameModal } from "./AddCustomGameModal/AddCustomGameModal";
+export { CrackingModal } from "./CrackingModal/CrackingModal";
 
