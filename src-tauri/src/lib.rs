@@ -15,6 +15,7 @@ mod cloud_sync;
 mod lock;
 mod cache;
 mod auth;
+mod steam_dll;
 
 use api::{fetch_catalogue, fetch_trending_games, fetch_random_game, fetch_game_stats_cached, search_games, fetch_developers, fetch_publishers, fetch_steam_app_details_cached, UserAchievement};
 use api::{CatalogueGame, TrendingGame, Steam250Game, GameStats, CatalogueSearchPayload, CatalogueSearchResponse, SteamAppDetails};

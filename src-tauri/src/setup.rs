@@ -3,6 +3,7 @@ use crate::preferences::get_user_preferences;
 use crate::aria2;
 use crate::ludasavi::Ludasavi;
 use crate::lock::AppLock;
+use crate::steam_dll;
 
 /// Initialize the application state on startup
 /// Similar to Hydra's loadState() function
@@ -68,13 +69,45 @@ pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
             println!("[Setup] ✓ Ludusavi initialized successfully");
             
             // CRITICAL: Update manifest in background to enable cloud save
-            // This runs async so it won't block app startup
+            // Use spawn_blocking for CPU-bound/blocking operations
             let ludasavi_clone = Ludasavi::new(app_handle.clone());
             tauri::async_runtime::spawn(async move {
                 println!("[Ludasavi] Starting background manifest update...");
-                match ludasavi_clone.update_manifest_database() {
-                    Ok(_) => println!("[Ludasavi] ✓ Manifest database updated successfully"),
-                    Err(e) => eprintln!("[Ludasavi] ⚠ Warning: Failed to update manifest: {}", e),
+                println!("[Ludasavi] This may take 5-10 seconds on first run...");
+                
+                // Retry logic: Try up to 3 times with 2 second delay
+                let mut attempts = 0;
+                let max_attempts = 3;
+                
+                while attempts < max_attempts {
+                    attempts += 1;
+                    
+                    // Run blocking operation in spawn_blocking
+                    let ludasavi_ref = Ludasavi::new(ludasavi_clone.app_handle.clone());
+                    match tauri::async_runtime::spawn_blocking(move || {
+                        ludasavi_ref.update_manifest_database()
+                    }).await {
+                        Ok(Ok(_)) => {
+                            println!("[Ludasavi] ✓ Manifest database updated successfully");
+                            println!("[Ludasavi] ✓ Cloud save feature is now ready");
+                            break;
+                        }
+                        Ok(Err(e)) => {
+                            if attempts < max_attempts {
+                                eprintln!("[Ludasavi] ⚠ Attempt {}/{} failed: {}", attempts, max_attempts, e);
+                                eprintln!("[Ludasavi] ⚠ Retrying in 2 seconds...");
+                                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                            } else {
+                                eprintln!("[Ludasavi] ✗ Failed to update manifest after {} attempts: {}", max_attempts, e);
+                                eprintln!("[Ludasavi] ✗ Cloud save may not detect new games");
+                                eprintln!("[Ludasavi] → Please update manually from Settings > Cloud Save > Update Game Database");
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("[Ludasavi] ✗ Task join error: {}", e);
+                            break;
+                        }
+                    }
                 }
             });
         }
@@ -85,8 +118,23 @@ pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
         }
     }
     
+    // 4. Initialize Steam API DLL (extract to EXE directory)
+    // CRITICAL: Steam API DLL must be in same folder as EXE!
+    #[cfg(windows)]
+    {
+        match steam_dll::init_steam_dll() {
+            Ok(dll_path) => {
+                println!("[Setup] ✓ Steam API DLL initialized at {:?}", dll_path);
+            }
+            Err(e) => {
+                eprintln!("[Setup] ⚠ Warning: Failed to initialize Steam API DLL: {}", e);
+                eprintln!("[Setup] ⚠ Steam achievement features may not work");
+                // Don't fail app startup if Steam DLL fails
+            }
+        }
+    }
+    
     // TODO: Future enhancements (similar to Hydra)
-    // - Acquire lock file (prevent multiple instances)
     // - Resume queued downloads
     // - Clean up extracting status
     // - Seed completed torrents

@@ -9,6 +9,18 @@ use tauri::{AppHandle, Manager};
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
+// ✅ EMBED BINARY AT COMPILE TIME - This is THE CORRECT WAY
+#[cfg(windows)]
+const LUDUSAVI_BINARY: &[u8] = include_bytes!("../../ludusavi/ludusavi.exe");
+
+#[cfg(target_os = "linux")]
+const LUDUSAVI_BINARY: &[u8] = include_bytes!("../../ludusavi/ludusavi");
+
+#[cfg(target_os = "macos")]
+const LUDUSAVI_BINARY: &[u8] = include_bytes!("../../ludusavi/ludusavi");
+
+const LUDUSAVI_CONFIG: &[u8] = include_bytes!("../../ludusavi/config.yaml");
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LudusaviFileChange {
     pub change: String, // "New" | "Different" | "Removed" | "Same" | "Unknown"
@@ -110,7 +122,7 @@ pub struct LudusaviMapping {
 }
 
 pub struct Ludasavi {
-    app_handle: AppHandle,
+    pub app_handle: AppHandle,
 }
 
 impl Ludasavi {
@@ -118,33 +130,7 @@ impl Ludasavi {
         Self { app_handle }
     }
 
-    /// Get the path to ludusavi resources (where the binary and config are stored in the app)
-    fn get_ludusavi_resources_path(&self) -> Result<PathBuf> {
-        // In development, ludusavi folder is in project root (not src-tauri!)
-        // In production, it should be bundled in resources
-        let resource_path = if cfg!(debug_assertions) {
-            // Development: go up from src-tauri to project root
-            let current_dir = std::env::current_dir()
-                .map_err(|e| anyhow::anyhow!("Failed to get current directory: {}", e))?;
-            
-            // If we're in src-tauri, go up one level
-            if current_dir.ends_with("src-tauri") {
-                current_dir.parent()
-                    .ok_or_else(|| anyhow::anyhow!("Failed to get parent directory"))?
-                    .to_path_buf()
-            } else {
-                current_dir
-            }
-        } else {
-            // Production: use resource directory
-            self.app_handle
-                .path()
-                .resource_dir()
-                .map_err(|e| anyhow::anyhow!("Failed to get resource directory: {}", e))?
-        };
-        
-        Ok(resource_path.join("ludusavi"))
-    }
+    // ✅ REMOVED: No longer need to get resources path, binary is embedded
 
     /// Get the user data path for ludusavi (where config will be copied to)
     fn get_ludusavi_config_path(&self) -> Result<PathBuf> {
@@ -168,9 +154,11 @@ impl Ludasavi {
         Ok(config_path.join(binary_name))
     }
 
-    /// Initialize ludusavi by copying binary and config to user data directory
+    /// Initialize ludusavi by extracting embedded binary and config to user data directory
+    /// ✅ FIXED: Binary is embedded at compile time, no need for resources folder
     pub fn init(&self) -> Result<()> {
         println!("[Ludasavi] Initializing...");
+        println!("[Ludasavi] Using embedded binary (compile-time bundled)");
         
         let config_path = self.get_ludusavi_config_path()?;
         println!("[Ludasavi] Config path: {:?}", config_path);
@@ -181,64 +169,41 @@ impl Ludasavi {
             println!("[Ludasavi] Created config directory");
         }
 
-        // Copy binary if it doesn't exist
+        // Write embedded binary to disk
         let binary_path = self.get_binary_path()?;
-        println!("[Ludasavi] Binary path: {:?}", binary_path);
+        println!("[Ludasavi] Target binary path: {:?}", binary_path);
         
         if !binary_path.exists() {
-            let resources_path = self.get_ludusavi_resources_path()?;
-            println!("[Ludasavi] Resources path: {:?}", resources_path);
+            println!("[Ludasavi] Extracting embedded binary ({} bytes)...", LUDUSAVI_BINARY.len());
+            fs::write(&binary_path, LUDUSAVI_BINARY)?;
+            println!("[Ludasavi] ✓ Binary extracted successfully");
             
-            let binary_name = if cfg!(windows) {
-                "ludusavi.exe"
-            } else {
-                "ludusavi"
-            };
-            let source_binary = resources_path.join(binary_name);
-            println!("[Ludasavi] Source binary: {:?}", source_binary);
-            
-            if source_binary.exists() {
-                println!("[Ludasavi] Copying binary...");
-                fs::copy(&source_binary, &binary_path)?;
-                println!("[Ludasavi] ✓ Binary copied successfully");
-                
-                // Make binary executable on Unix systems
-                #[cfg(unix)]
-                {
-                    use std::os::unix::fs::PermissionsExt;
-                    let mut perms = fs::metadata(&binary_path)?.permissions();
-                    perms.set_mode(0o755);
-                    fs::set_permissions(&binary_path, perms)?;
-                    println!("[Ludasavi] ✓ Binary made executable");
-                }
-            } else {
-                return Err(anyhow::anyhow!("Source binary not found at {:?}", source_binary));
+            // Make binary executable on Unix systems
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut perms = fs::metadata(&binary_path)?.permissions();
+                perms.set_mode(0o755);
+                fs::set_permissions(&binary_path, perms)?;
+                println!("[Ludasavi] ✓ Binary made executable");
             }
         } else {
-            println!("[Ludasavi] Binary already exists");
+            println!("[Ludasavi] Binary already exists at {:?}", binary_path);
         }
 
-        // Copy config if it doesn't exist
+        // Write embedded config to disk
         let config_file = config_path.join("config.yaml");
         println!("[Ludasavi] Config file: {:?}", config_file);
         
         if !config_file.exists() {
-            let resources_path = self.get_ludusavi_resources_path()?;
-            let source_config = resources_path.join("config.yaml");
-            println!("[Ludasavi] Source config: {:?}", source_config);
-            
-            if source_config.exists() {
-                println!("[Ludasavi] Copying config...");
-                fs::copy(&source_config, &config_file)?;
-                println!("[Ludasavi] ✓ Config copied successfully");
-            } else {
-                return Err(anyhow::anyhow!("Source config not found at {:?}", source_config));
-            }
+            println!("[Ludasavi] Extracting embedded config ({} bytes)...", LUDUSAVI_CONFIG.len());
+            fs::write(&config_file, LUDUSAVI_CONFIG)?;
+            println!("[Ludasavi] ✓ Config extracted successfully");
         } else {
             println!("[Ludasavi] Config already exists");
         }
 
-        println!("[Ludasavi] ✓ Binary and config initialization complete");
+        println!("[Ludasavi] ✓ Initialization complete (embedded binary method)");
         Ok(())
     }
 

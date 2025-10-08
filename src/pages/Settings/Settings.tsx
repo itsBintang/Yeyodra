@@ -4,6 +4,7 @@ import { Button } from "@/components";
 import { SettingsGeneral } from "./SettingsGeneral";
 import { SettingsDownloadSources } from "./SettingsDownloadSources";
 import SettingsLicense from "./SettingsLicense";
+import { SettingsAccount } from "./SettingsAccount";
 import "./Settings.scss";
 
 export function Settings() {
@@ -21,6 +22,7 @@ export function Settings() {
     if (currentTab === 0) return <SettingsGeneral />;
     if (currentTab === 1) return <SettingsDownloadSources />;
     if (currentTab === 2) return <SettingsLicense />;
+    if (currentTab === 3) return <SettingsAccount />;
     return <div>Coming soon...</div>;
   };
 

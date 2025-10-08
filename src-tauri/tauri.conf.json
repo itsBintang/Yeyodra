@@ -36,10 +36,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": {
-      "../binaries/aria2c.exe": "./",
-      "../binaries/7z.exe": "./",
-      "../binaries/7z.dll": "./"
-    }
+    "resources": [
+      "../binaries/aria2c.exe",
+      "../binaries/7z.exe",
+      "../binaries/7z.dll"
+    ]
   }
 }
