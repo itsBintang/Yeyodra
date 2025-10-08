@@ -3,7 +3,6 @@ use crate::preferences::get_user_preferences;
 use crate::aria2;
 use crate::ludasavi::Ludasavi;
 use crate::lock::AppLock;
-use crate::steam_dll;
 
 /// Initialize the application state on startup
 /// Similar to Hydra's loadState() function
@@ -115,22 +114,6 @@ pub fn initialize_app(app_handle: &AppHandle) -> Result<(), String> {
             eprintln!("[Setup] ⚠ Warning: Failed to initialize Ludusavi: {}", e);
             eprintln!("[Setup] ⚠ Cloud save features may not work");
             // Don't fail app startup if ludusavi fails
-        }
-    }
-    
-    // 4. Initialize Steam API DLL (extract to EXE directory)
-    // CRITICAL: Steam API DLL must be in same folder as EXE!
-    #[cfg(windows)]
-    {
-        match steam_dll::init_steam_dll() {
-            Ok(dll_path) => {
-                println!("[Setup] ✓ Steam API DLL initialized at {:?}", dll_path);
-            }
-            Err(e) => {
-                eprintln!("[Setup] ⚠ Warning: Failed to initialize Steam API DLL: {}", e);
-                eprintln!("[Setup] ⚠ Steam achievement features may not work");
-                // Don't fail app startup if Steam DLL fails
-            }
         }
     }
     
