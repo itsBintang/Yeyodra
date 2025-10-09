@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
@@ -20,6 +21,13 @@ interface ScanResult {
   already_in_library: number;
 }
 
+interface ImportProgress {
+  current: number;
+  total: number;
+  message: string;
+  game_title: string;
+}
+
 export function SettingsImportLibrary() {
   const { t } = useTranslation("settings");
   const { showSuccessToast, showErrorToast } = useToast();
@@ -29,6 +37,26 @@ export function SettingsImportLibrary() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [selectedGames, setSelectedGames] = useState<Set<string>>(new Set());
   const [customPath, setCustomPath] = useState("C:\\Program Files (x86)\\Steam\\config\\stplug-in");
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+
+  // Listen for import progress events
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const setupListener = async () => {
+      unlisten = await listen<ImportProgress>("library-import-progress", (event) => {
+        setImportProgress(event.payload);
+      });
+    };
+
+    setupListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, []);
 
   const handleBrowsePath = async () => {
     try {
@@ -121,6 +149,7 @@ export function SettingsImportLibrary() {
     if (!scanResult || selectedGames.size === 0) return;
 
     setIsImporting(true);
+    setImportProgress({ current: 0, total: selectedGames.size, message: "Starting import...", game_title: "" });
 
     try {
       // Get selected games data
@@ -150,6 +179,7 @@ export function SettingsImportLibrary() {
       showErrorToast(`Import failed: ${error}`);
     } finally {
       setIsImporting(false);
+      setImportProgress(null);
     }
   };
 
@@ -232,6 +262,27 @@ export function SettingsImportLibrary() {
           </>
         )}
       </div>
+
+      {/* Import Progress Bar */}
+      {importProgress && (
+        <div className="settings-import-library__progress">
+          <div className="progress-bar">
+            <div 
+              className="progress-bar__fill" 
+              style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+            />
+          </div>
+          <div className="progress-info">
+            <span className="progress-info__message">{importProgress.message}</span>
+            {importProgress.game_title && (
+              <span className="progress-info__game">{importProgress.game_title}</span>
+            )}
+            <span className="progress-info__count">
+              {importProgress.current} / {importProgress.total}
+            </span>
+          </div>
+        </div>
+      )}
 
       {scanResult && (
         <div className="settings-import-library__results">

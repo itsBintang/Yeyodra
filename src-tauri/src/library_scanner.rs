@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 /// Scanned game info from SteamTools
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -149,44 +149,106 @@ pub async fn fetch_game_names_batch(app_ids: Vec<String>) -> Result<Vec<(String,
     Ok(results)
 }
 
-/// Import selected games to library
-pub fn import_games_to_library(
-    app_handle: &AppHandle,
+/// Import selected games to library (ASYNC with progress events)
+pub async fn import_games_to_library(
+    app_handle: AppHandle,
     games: Vec<ScannedGame>,
 ) -> Result<usize> {
     use crate::library::{add_game_to_library, mark_game_as_installed};
+    use serde_json::json;
     
+    let total_games = games.len();
     let mut imported_count = 0;
+    let mut processed = 0;
+    
+    println!("[LibraryScanner] Starting import of {} games", total_games);
+    
+    // Emit initial progress
+    let _ = app_handle.emit(
+        "library-import-progress",
+        &json!({
+            "current": 0,
+            "total": total_games,
+            "message": "Starting import...",
+            "game_title": ""
+        }),
+    );
     
     for game in games {
         // Skip if already in library
         if game.is_already_in_library {
             println!("[LibraryScanner] Skipping (already in library): {}", game.title);
+            processed += 1;
             continue;
         }
         
         println!("[LibraryScanner] Importing: {} (AppID: {})", game.title, game.app_id);
         
-        match add_game_to_library(
-            app_handle,
-            "steam".to_string(),
-            game.app_id.clone(),
-            game.title.clone(),
-        ) {
-            Ok(_) => {
-                // Mark as installed since it's from SteamTools
-                if let Err(e) = mark_game_as_installed(app_handle, "steam", &game.app_id) {
-                    eprintln!("[LibraryScanner] ⚠ Failed to mark as installed: {}", e);
-                }
-                
+        // Emit progress for current game
+        let _ = app_handle.emit(
+            "library-import-progress",
+            &json!({
+                "current": processed,
+                "total": total_games,
+                "message": format!("Importing game {}/{}", processed + 1, total_games),
+                "game_title": game.title.clone()
+            }),
+        );
+        
+        // Run blocking operations in spawn_blocking to avoid runtime conflict
+        let app_handle_clone = app_handle.clone();
+        let app_id_clone = game.app_id.clone();
+        let title_clone = game.title.clone();
+        
+        let result = tokio::task::spawn_blocking(move || -> Result<()> {
+            // Add game to library
+            add_game_to_library(
+                &app_handle_clone,
+                "steam".to_string(),
+                app_id_clone.clone(),
+                title_clone.clone(),
+            )
+            .map_err(|e| anyhow!(e))?;
+            
+            // Mark as installed since it's from SteamTools
+            mark_game_as_installed(&app_handle_clone, "steam", &app_id_clone)
+                .map_err(|e| anyhow!(e))?;
+            
+            Ok(())
+        })
+        .await;
+        
+        match result {
+            Ok(Ok(_)) => {
                 imported_count += 1;
                 println!("[LibraryScanner] ✓ Imported & marked as installed: {}", game.title);
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 eprintln!("[LibraryScanner] ✗ Failed to import {}: {}", game.title, e);
             }
+            Err(e) => {
+                eprintln!("[LibraryScanner] ✗ Task failed for {}: {}", game.title, e);
+            }
+        }
+        
+        processed += 1;
+        
+        // Yield to UI thread every 3 games (prevents blocking)
+        if processed % 3 == 0 {
+            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
         }
     }
+    
+    // Emit completion
+    let _ = app_handle.emit(
+        "library-import-progress",
+        &json!({
+            "current": total_games,
+            "total": total_games,
+            "message": "Import complete!",
+            "game_title": ""
+        }),
+    );
     
     println!("[LibraryScanner] ✓ Import complete: {} games imported", imported_count);
     Ok(imported_count)

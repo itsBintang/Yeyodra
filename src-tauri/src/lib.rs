@@ -799,11 +799,12 @@ fn scan_steam_library_folder(
 }
 
 #[tauri::command]
-fn import_scanned_games(
+async fn import_scanned_games(
     app_handle: tauri::AppHandle,
     games: Vec<ScannedGame>,
 ) -> Result<usize, String> {
-    library_scanner::import_games_to_library(&app_handle, games)
+    library_scanner::import_games_to_library(app_handle, games)
+        .await
         .map_err(|e| e.to_string())
 }
 

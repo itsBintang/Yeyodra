@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Modal } from "../Modal/Modal";
+import { XIcon } from "@primer/octicons-react";
 import "./CrackingModal.scss";
 
 interface CrackingModalProps {
@@ -30,7 +30,6 @@ export function CrackingModal({
   const [progress, setProgress] = useState<CrackProgress>({ progress: 0, message: "" });
   const [result, setResult] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [isSetupComplete, setIsSetupComplete] = useState(true); // Assume ready by default
 
   // Listen for progress events
   useEffect(() => {
@@ -81,15 +80,7 @@ export function CrackingModal({
     setProgress({ progress: 0, message: "Starting..." });
 
     try {
-      // Check if setup is complete
-      const isReady = await invoke<boolean>("cmd_check_cracker_ready");
-      
-      if (!isReady) {
-        setProgress({ progress: 0, message: "Setting up cracker dependencies..." });
-        await invoke("cmd_setup_cracker");
-      }
-
-      const crackResult = await invoke<string>("cmd_apply_crack", {
+      await invoke<string>("cmd_apply_crack", {
         gameLocation: gamePath,
         appId: appId,
         language: "english",
@@ -116,32 +107,54 @@ export function CrackingModal({
     }
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} onClose={handleClose}>
+    <div className="cracking-modal-overlay">
       <div className="cracking-modal">
-        <div className="cracking-modal__header">
-          {gameLogoUrl && (
-            <img
-              src={gameLogoUrl}
-              alt={gameName}
-              className="cracking-modal__game-logo"
-            />
-          )}
-          <div className="cracking-modal__title-container">
-            <h2 className="cracking-modal__title">Game Cracking</h2>
-            <p className="cracking-modal__subtitle">{gameName}</p>
+        {/* Header */}
+        <div className="cracking-modal-header">
+          <h2 className="cracking-modal-title">Game Cracking</h2>
+          <button onClick={handleClose} className="cracking-close-btn" disabled={isCracking}>
+            <XIcon size={24} />
+          </button>
+        </div>
+
+        {/* Game Info Section */}
+        <div className="cracking-game-info">
+          <div className="cracking-game-header">
+            {gameLogoUrl && (
+              <img src={gameLogoUrl} alt={gameName} className="cracking-game-logo" />
+            )}
+            <h3 className="cracking-game-name">{gameName}</h3>
           </div>
         </div>
 
-        <div className="cracking-modal__content">
-          <div className="cracking-modal__section">
-            <label className="cracking-modal__label">
-              Game Installation Folder
-            </label>
-            <div className="cracking-modal__path-input-group">
+        {/* Unlock Method */}
+        <div className="cracking-unlock-method">
+          <h4 className="cracking-section-title">Unlock Method</h4>
+          <div className="cracking-method-tabs">
+            <button className="cracking-method-tab active">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              Goldberg
+            </button>
+          </div>
+          <p className="cracking-method-description">
+            Remove Steam DRM and emulate Steam API for offline play
+          </p>
+        </div>
+
+        {/* Content */}
+        <div className="cracking-modal-content">
+          {/* Game Installation Folder */}
+          <div className="cracking-folder-section">
+            <label className="cracking-folder-label">Game Installation Folder</label>
+            <div className="cracking-folder-input-group">
               <input
                 type="text"
-                className="cracking-modal__path-input"
+                className="cracking-folder-input"
                 value={gamePath}
                 onChange={(e) => setGamePath(e.target.value)}
                 placeholder="Select game installation folder..."
@@ -149,69 +162,73 @@ export function CrackingModal({
               />
               <button
                 type="button"
-                className="cracking-modal__browse-button"
+                className="cracking-browse-button"
                 onClick={handleBrowseFolder}
                 disabled={isCracking}
               >
                 📁 Browse
               </button>
             </div>
-            <p className="cracking-modal__hint">
+            <p className="cracking-folder-hint">
               Select the folder where the game is installed (contains .exe files)
             </p>
           </div>
 
+          {/* Progress Bar */}
           {progress.progress > 0 && (
-            <div className="cracking-modal__progress">
-              <div className="cracking-modal__progress-bar-container">
+            <div className="cracking-progress-section">
+              <div className="cracking-progress-bar-container">
                 <div
-                  className="cracking-modal__progress-bar"
+                  className="cracking-progress-bar"
                   style={{ width: `${progress.progress}%` }}
                 />
               </div>
-              <p className="cracking-modal__progress-text">
+              <p className="cracking-progress-text">
                 {progress.message} ({progress.progress}%)
               </p>
             </div>
           )}
 
+          {/* Error Message */}
           {error && (
-            <div className="cracking-modal__error">
-              <span className="cracking-modal__error-icon">⚠️</span>
-              {error}
+            <div className="cracking-error-box">
+              <span className="cracking-error-icon">⚠️</span>
+              <p>{error}</p>
             </div>
           )}
 
+          {/* Success Message */}
           {result && (
-            <div className="cracking-modal__success">
-              <span className="cracking-modal__success-icon">✅</span>
+            <div className="cracking-success-box">
+              <span className="cracking-success-icon">✅</span>
               <p>Game cracked successfully! Original files backed up with .svrn extension.</p>
             </div>
           )}
-        </div>
 
-        <div className="cracking-modal__footer">
-          <button
-            type="button"
-            className="cracking-modal__button cracking-modal__button--secondary"
-            onClick={handleClose}
-            disabled={isCracking}
-          >
-            {result ? "Close" : "Cancel"}
-          </button>
-          {!result && (
+          {/* Action Buttons */}
+          <div className="cracking-actions">
             <button
               type="button"
-              className="cracking-modal__button cracking-modal__button--primary"
-              onClick={handleCrack}
-              disabled={isCracking || !gamePath}
+              className="cracking-action-btn cracking-action-btn--secondary"
+              onClick={handleClose}
+              disabled={isCracking}
             >
-              {isCracking ? "🔄 Cracking..." : "Start Crack"}
+              {result ? "Close" : "Cancel"}
             </button>
-          )}
+            {!result && (
+              <button
+                type="button"
+                className="cracking-action-btn cracking-action-btn--primary"
+                onClick={handleCrack}
+                disabled={isCracking || !gamePath}
+              >
+                {isCracking ? "🔄 Cracking..." : "Start Crack"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }
 
