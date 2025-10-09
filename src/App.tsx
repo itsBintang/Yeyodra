@@ -48,33 +48,6 @@ export function App() {
     }
   }, [licenseChecked]);
 
-  // Background validation every 1 minute (for testing)
-  useEffect(() => {
-    if (!isLicensed || !licenseChecked) return;
-
-    const validateInBackground = async () => {
-      try {
-        console.log("[Auth] Background validation...");
-        await invoke("validate_license_key");
-        console.log("[Auth] Background validation passed");
-      } catch (err) {
-        console.error("[Auth] Background validation failed:", err);
-        // License invalid - force re-activation
-        setIsLicensed(false);
-        alert("Your license is no longer valid. Please reactivate.");
-      }
-    };
-
-    // Validate immediately on mount
-    validateInBackground();
-
-    // Then validate every 1 minute (for testing - change to 30 * 60 * 1000 for production)
-    // Production: 30 minutes
-const interval = setInterval(validateInBackground, 30 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [isLicensed, licenseChecked]);
-
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [location.pathname, location.search]);
