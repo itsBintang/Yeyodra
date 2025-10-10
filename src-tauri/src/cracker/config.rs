@@ -6,7 +6,7 @@
 pub const S3: &str = "https://s3.lillianne.solutions/";
 
 // Application folder name for storing cache data
-pub const FOLDER: &str = "com.chaoslauncher.dev"; // Must match tauri.conf.json's identifier
+pub const FOLDER: &str = "com.nazril.yeyodra"; // Must match tauri.conf.json's identifier
 
 // Steam API key for getting achievements (optional - can be empty)
 // Get a key from: https://steamcommunity.com/dev/apikey

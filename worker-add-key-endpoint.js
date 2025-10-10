@@ -6,7 +6,7 @@
  * POST /admin/add-key
  * Body: { 
  *   "adminToken": "your-secret-token",
- *   "key": "CHAOS-NEW-KEY-XXXX",
+ *   "key": "YEYODRA-NEW-KEY-XXXX",
  *   "maxDevices": 1,
  *   "expiresInDays": 365
  * }
@@ -25,7 +25,7 @@ async function handleAddKey(request, env) {
     }
 
     // Validate input
-    if (!key || !key.startsWith("CHAOS-")) {
+    if (!key || !key.startsWith("YEYODRA-")) {
       return new Response(JSON.stringify({ error: "Invalid key format" }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
@@ -119,7 +119,7 @@ async function handleListKeys(request, env) {
 
 /**
  * DELETE /admin/delete-key
- * Body: { "adminToken": "xxx", "key": "CHAOS-XXX" }
+ * Body: { "adminToken": "xxx", "key": "YEYODRA-XXX" }
  */
 async function handleDeleteKey(request, env) {
   try {

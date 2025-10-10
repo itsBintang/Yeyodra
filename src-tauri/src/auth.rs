@@ -55,7 +55,7 @@ pub fn get_device_id() -> Result<String> {
     match machineid_rs::IdBuilder::new(machineid_rs::Encryption::SHA256)
         .add_component(machineid_rs::HWIDComponent::SystemID)
         .add_component(machineid_rs::HWIDComponent::CPUCores)
-        .build("chaos-launcher")
+        .build("yeyodra-launcher")
     {
         Ok(hwid) => Ok(hwid),
         Err(e) => Err(anyhow!("Failed to generate device ID: {}", e)),

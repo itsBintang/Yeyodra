@@ -1,20 +1,22 @@
 {
     "keys": [
       {
-        "key": "CHAOS-A1B2-C3D4-E5F7",
+        "key": "YEYODRA-A1B2-C3D4-E5F7",
         "status": "available",
         "activatedAt": null,
         "expiresAt": null,
         "deviceId": null,
-        "maxDevices": 1
+        "maxDevices": 1,
+        "expiresInDays": 365
       },
       {
-        "key": "CHAOS-A1B2-C3D4-E5G8",
+        "key": "YEYODRA-A1B2-C3D4-E5G8",
         "status": "available",
         "activatedAt": null,
         "expiresAt": null,
         "deviceId": null,
-        "maxDevices": 1
+        "maxDevices": 1,
+        "expiresInDays": 365
       }
     ]
   }

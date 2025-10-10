@@ -103,7 +103,7 @@ export default function LicenseActivation() {
                   value={licenseKey}
                   onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
                   onKeyPress={handleKeyPress}
-                  placeholder="CHAOS-XXXX-XXXX-XXXX"
+                  placeholder="YEYODRA-XXXX-XXXX-XXXX"
                   className="license-activation__input"
                   disabled={loading}
                   autoFocus

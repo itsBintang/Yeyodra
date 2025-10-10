@@ -49,7 +49,10 @@ export function GameOptionsModal({
           objectId: game.objectId,
           executablePath: selected as string,
         });
+        
+        // Update both game details context AND library Redux store
         onGameUpdate();
+        await updateLibrary();
         
         // Get filename from path for display
         const filename = (selected as string).split(/[\\/]/).pop() || "Executable";
@@ -76,7 +79,10 @@ export function GameOptionsModal({
         objectId: game.objectId,
         executablePath: null,
       });
+      
+      // Update both game details context AND library Redux store
       onGameUpdate();
+      await updateLibrary();
       
       showSuccessToast(
         "Executable Removed",

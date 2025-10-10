@@ -1,5 +1,5 @@
 // ============================================
-// CHAOS LAUNCHER - LICENSE SERVER
+// YEYODRA LAUNCHER - LICENSE SERVER
 // Cloudflare Worker with R2 Storage
 // ============================================
 
@@ -18,7 +18,7 @@ async function handleActivate(request, env) {
     }
 
     // Fetch keys from R2
-    const r2Object = await env.CHAOS_AUTH.get("keys.json");
+    const r2Object = await env.YEYODRA_AUTH.get("keys.json");
     if (!r2Object) {
       return jsonResponse({ error: "Keys database not found" }, 500);
     }
@@ -61,7 +61,7 @@ async function handleActivate(request, env) {
     licenseKey.expiresAt = expiresAt.toISOString();
 
     // Save updated keys back to R2
-    await env.CHAOS_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
+    await env.YEYODRA_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
 
     console.log(`[Activate] ✓ License activated successfully`);
 
@@ -92,7 +92,7 @@ async function handleValidate(request, env) {
     }
 
     // Fetch keys from R2
-    const r2Object = await env.CHAOS_AUTH.get("keys.json");
+    const r2Object = await env.YEYODRA_AUTH.get("keys.json");
     if (!r2Object) {
       return jsonResponse({ error: "Keys database not found" }, 500);
     }
@@ -150,12 +150,12 @@ async function handleAdminAddKey(request, env) {
     }
 
     // Validate key format
-    if (!key || !key.startsWith("CHAOS-")) {
-      return jsonResponse({ error: "Invalid key format (must start with CHAOS-)" }, 400);
+    if (!key || !key.startsWith("YEYODRA-")) {
+      return jsonResponse({ error: "Invalid key format (must start with YEYODRA-)" }, 400);
     }
 
     // Fetch existing keys from R2
-    const r2Object = await env.CHAOS_AUTH.get("keys.json");
+    const r2Object = await env.YEYODRA_AUTH.get("keys.json");
     let keysData = { keys: [] };
 
     if (r2Object) {
@@ -180,7 +180,7 @@ async function handleAdminAddKey(request, env) {
     });
 
     // Save back to R2
-    await env.CHAOS_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
+    await env.YEYODRA_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
 
     console.log(`[Admin] ✓ Key added: ${key}`);
 
@@ -211,7 +211,7 @@ async function handleAdminListKeys(request, env) {
     }
 
     // Fetch keys from R2
-    const r2Object = await env.CHAOS_AUTH.get("keys.json");
+    const r2Object = await env.YEYODRA_AUTH.get("keys.json");
     if (!r2Object) {
       return jsonResponse({ keys: [] });
     }
@@ -248,7 +248,7 @@ async function handleAdminDeleteKey(request, env) {
     }
 
     // Fetch existing keys
-    const r2Object = await env.CHAOS_AUTH.get("keys.json");
+    const r2Object = await env.YEYODRA_AUTH.get("keys.json");
     if (!r2Object) {
       return jsonResponse({ error: "No keys found" }, 404);
     }
@@ -264,7 +264,7 @@ async function handleAdminDeleteKey(request, env) {
     }
 
     // Save back to R2
-    await env.CHAOS_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
+    await env.YEYODRA_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
 
     console.log(`[Admin] ✓ Key deleted: ${key}`);
 
@@ -341,7 +341,7 @@ export default {
 
     if (path === "/" && method === "GET") {
       return jsonResponse({
-        service: "CHAOS Launcher License Server",
+        service: "Yeyodra Launcher License Server",
         status: "running",
         endpoints: {
           public: [
