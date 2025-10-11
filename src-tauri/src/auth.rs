@@ -22,6 +22,8 @@ struct ActivateRequest {
     key: String,
     #[serde(rename = "deviceId")]
     device_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    username: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,6 +33,8 @@ struct ActivateResponse {
     error: Option<String>,
     #[serde(rename = "expiresAt")]
     expires_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    username: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -109,12 +113,21 @@ pub async fn activate_license(
     println!("[Auth] Activating license key: {}", key);
     println!("[Auth] Device ID: {}", device_id);
 
+    // Try to get username from user profile
+    let username = match crate::user_profile::get_user_profile(&app_handle) {
+        Ok(profile) => Some(profile.display_name),
+        Err(_) => None,
+    };
+
+    println!("[Auth] Username: {:?}", username);
+
     let client = reqwest::Client::new();
     let response = client
         .post(format!("{}/activate", AUTH_API_URL))
         .json(&ActivateRequest {
             key: key.clone(),
             device_id: device_id.clone(),
+            username,
         })
         .send()
         .await?;
@@ -143,6 +156,29 @@ pub async fn activate_license(
 
     // Save to local file
     save_license(&app_handle, &license)?;
+
+    // Sync username from R2 to local profile if provided
+    if let Some(r2_username) = activate_response.username {
+        // Don't sync placeholder usernames
+        let is_placeholder = r2_username.is_empty() 
+            || r2_username == "Unknown User" 
+            || r2_username == "Local User"
+            || r2_username == "Yeyodra User";
+            
+        if !is_placeholder {
+            match crate::user_profile::get_user_profile(&app_handle) {
+                Ok(mut profile) => {
+                    // Only update if different to avoid unnecessary writes
+                    if profile.display_name != r2_username {
+                        println!("[Auth] Syncing username from R2: '{}' -> '{}'", profile.display_name, r2_username);
+                        profile.display_name = r2_username;
+                        let _ = crate::user_profile::save_user_profile(&app_handle, profile);
+                    }
+                },
+                Err(e) => println!("[Auth] Could not sync username: {}", e),
+            }
+        }
+    }
 
     println!("[Auth] ✓ License activated successfully");
     Ok(license)

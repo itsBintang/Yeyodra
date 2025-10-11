@@ -20,7 +20,7 @@ impl Default for UserProfile {
     fn default() -> Self {
         Self {
             id: "local-user".to_string(),
-            display_name: "Local User".to_string(),
+            display_name: "Yeyodra User".to_string(),
             profile_image_url: None,
             background_image_url: None,
             created_at: chrono::Utc::now().to_rfc3339(),

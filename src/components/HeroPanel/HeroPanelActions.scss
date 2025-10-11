@@ -161,11 +161,17 @@
 
     &--download {
       svg {
-        color: #60a5fa; // Blue - same as play
+        color: #60a5fa; // Blue - download color
       }
 
       &.active::after {
         background: #60a5fa; // Blue indicator
+      }
+
+      &:hover:not(:disabled) {
+        svg {
+          color: #93c5fd; // Lighter blue on hover
+        }
       }
     }
 

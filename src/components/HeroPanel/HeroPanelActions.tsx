@@ -131,14 +131,30 @@ export function HeroPanelActions() {
   // Download will auto-add to library after completion
   if (!game) {
     return (
-      <Button
-        theme="primary"
-        onClick={handleDownloadClick}
-        className="hero-panel-actions__action"
-      >
-        <DownloadIcon />
-        {t("download")}
-      </Button>
+      <div className="hero-panel-actions__container">
+        <div className="hero-panel-actions__integrated-wrapper">
+          <div className="hero-panel-actions__main-button">
+            <Button
+              theme="primary"
+              onClick={handleDownloadClick}
+              className="hero-panel-actions__primary-btn"
+            >
+              <DownloadIcon />
+              {t("download")}
+            </Button>
+          </div>
+
+          <div className="hero-panel-actions__icon-group">
+            <button
+              className="hero-panel-actions__icon-btn hero-panel-actions__icon-btn--download active"
+              onClick={handleDownloadClick}
+              title={t("download")}
+            >
+              <DownloadIcon size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -271,19 +287,20 @@ export function HeroPanelActions() {
                 disabled={toggleLibraryGameDisabled}
                 className="hero-panel-actions__primary-btn"
               >
-                {mainButton.icon}
+                <DownloadIcon />
                 {mainButton.label}
               </Button>
             </div>
 
-            {/* Single Icon - Download indicator */}
+            {/* Single Icon - Plus icon for download */}
             <div className="hero-panel-actions__icon-group">
               <button
                 className="hero-panel-actions__icon-btn hero-panel-actions__icon-btn--download active"
+                onClick={handleDownloadClick}
                 disabled={toggleLibraryGameDisabled}
                 title={t("download")}
               >
-                <DownloadIcon size={16} />
+                <PlusIcon size={16} />
               </button>
             </div>
           </div>

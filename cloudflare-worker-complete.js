@@ -8,9 +8,9 @@
 async function handleActivate(request, env) {
   try {
     const body = await request.json();
-    const { key, deviceId } = body;
+    const { key, deviceId, username } = body;
 
-    console.log(`[Activate] Key: ${key}, DeviceId: ${deviceId}`);
+    console.log(`[Activate] Key: ${key}, DeviceId: ${deviceId}, Username: ${username || 'N/A'}`);
 
     // Validate input
     if (!key || !deviceId) {
@@ -36,10 +36,22 @@ async function handleActivate(request, env) {
       // Check if it's the same device (re-installation)
       if (licenseKey.deviceId === deviceId) {
         console.log(`[Activate] Re-activation allowed for same device`);
+        
+        // Smart username update on re-activation:
+        // Update if new username is better than placeholder
+        const isPlaceholder = (name) => !name || name === "Unknown User" || name === "Local User" || name === "Yeyodra User";
+        if (username && !isPlaceholder(username) && isPlaceholder(licenseKey.username)) {
+          console.log(`[Activate] Updating username from "${licenseKey.username}" to "${username}"`);
+          licenseKey.username = username;
+          // Save updated username
+          await env.YEYODRA_AUTH.put("keys.json", JSON.stringify(keysData, null, 2));
+        }
+        
         return jsonResponse({
           success: true,
           message: "License re-activated successfully",
-          expiresAt: licenseKey.expiresAt
+          expiresAt: licenseKey.expiresAt,
+          username: licenseKey.username // Send username to client
         });
       } else {
         // Different device trying to use the key
@@ -57,6 +69,14 @@ async function handleActivate(request, env) {
 
     licenseKey.status = "used";
     licenseKey.deviceId = deviceId;
+    
+    // Smart username assignment: 
+    // - Only set if not already exists OR if new username is better than placeholder
+    const isPlaceholder = (name) => !name || name === "Unknown User" || name === "Local User" || name === "Yeyodra User";
+    if (!licenseKey.username || (isPlaceholder(licenseKey.username) && !isPlaceholder(username))) {
+      licenseKey.username = username || "Unknown User";
+    }
+    
     licenseKey.activatedAt = now.toISOString();
     licenseKey.expiresAt = expiresAt.toISOString();
 
@@ -68,7 +88,8 @@ async function handleActivate(request, env) {
     return jsonResponse({
       success: true,
       message: "License activated successfully",
-      expiresAt: expiresAt.toISOString()
+      expiresAt: expiresAt.toISOString(),
+      username: licenseKey.username // Send username to client
     });
 
   } catch (error) {
