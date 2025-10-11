@@ -142,6 +142,20 @@
       color: $success-color;
       font-weight: 600;
     }
+
+    &--drm {
+      color: #fbbf24; // Yellow/amber for DRM warning
+      font-size: $small-font-size;
+      line-height: 1.4;
+    }
+  }
+
+  &__info-item--drm {
+    background: rgba(251, 191, 36, 0.1); // Light yellow background
+    border-left: 3px solid #fbbf24;
+    padding: calc($spacing-unit * 1.5);
+    border-radius: 4px;
+    margin-top: calc($spacing-unit / 2);
   }
 }
 

@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { XIcon } from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
 import "./CrackingModal.scss";
 
 interface CrackingModalProps {
@@ -11,6 +12,7 @@ interface CrackingModalProps {
   appId: string;
   gameName: string;
   gameLogoUrl?: string;
+  drmNotice?: string | null; // DRM information from Steam API
 }
 
 interface CrackProgress {
@@ -24,12 +26,17 @@ export function CrackingModal({
   appId,
   gameName,
   gameLogoUrl,
+  drmNotice,
 }: CrackingModalProps) {
+  const { t } = useTranslation("game_details");
   const [gamePath, setGamePath] = useState<string>("");
   const [isCracking, setIsCracking] = useState(false);
   const [progress, setProgress] = useState<CrackProgress>({ progress: 0, message: "" });
   const [result, setResult] = useState<string>("");
   const [error, setError] = useState<string>("");
+  
+  // Check if game has any DRM
+  const hasDRM = !!drmNotice;
 
   // Listen for progress events
   useEffect(() => {
@@ -129,6 +136,25 @@ export function CrackingModal({
             <h3 className="cracking-game-name">{gameName}</h3>
           </div>
         </div>
+
+        {/* DRM Warning - Show if any DRM detected */}
+        {hasDRM && (
+          <div className="cracking-drm-warning cracking-drm-warning--denuvo">
+            <div className="cracking-drm-warning-header">
+              <span className="cracking-drm-warning-icon">⚠️</span>
+              <h4>
+                {drmNotice?.toLowerCase().includes("denuvo") 
+                  ? t("denuvo_warning_title") 
+                  : t("drm_notice_title")}
+              </h4>
+            </div>
+            <p className="cracking-drm-warning-text">
+              {drmNotice?.toLowerCase().includes("denuvo") 
+                ? <span dangerouslySetInnerHTML={{ __html: t("denuvo_warning_message") }} />
+                : drmNotice}
+            </p>
+          </div>
+        )}
 
         {/* Unlock Method */}
         <div className="cracking-unlock-method">

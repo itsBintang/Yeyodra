@@ -24,7 +24,6 @@
       "queued": "{{title}} (Antrian)",
       "paused": "{{title}} (Dijeda)",
       "show_playable_only_tooltip": "Tampilkan yang dapat dimainkan saja",
-      "add_custom_game_tooltip": "Tambahkan game kustom",
       "game_has_no_executable": "Game tidak memiliki file eksekusi",
       "no_games_in_library": "Tidak ada game di perpustakaan",
       "no_results": "Tidak ada hasil ditemukan",
@@ -130,11 +129,15 @@
       "previous_screenshot": "Sebelumnya",
       "next_screenshot": "Berikutnya",
       "open_screenshot": "Buka tangkapan layar {{number}}",
-      "cloud_save": "Simpan di cloud",
-      "update_game": "Auto Update",
-      "auto_update_enabled_title": "Auto-Update Diaktifkan",
-      "auto_update_enabled_message": "{{gameName}} sekarang dalam mode auto-update. Silakan restart Steam untuk menerapkan perubahan."
-    },
+    "cloud_save": "Simpan di cloud",
+    "update_game": "Auto Update",
+    "auto_update_enabled_title": "Auto-Update Diaktifkan",
+    "auto_update_enabled_message": "{{gameName}} sekarang dalam mode auto-update. Silakan restart Steam untuk menerapkan perubahan.",
+    "denuvo_warning_title": "Terdeteksi Denuvo Anti-Tamper",
+    "denuvo_warning_message": "Game ini menggunakan perlindungan <strong>Denuvo Anti-Tamper</strong>, yang tidak dapat dihapus oleh tool ini. Anda harus crack executable game secara manual terlebih dahulu sebelum menggunakan emulator Goldberg, jika tidak game tidak akan berfungsi.",
+    "drm_notice_title": "Pemberitahuan DRM",
+    "drm_label": "DRM"
+  },
   "settings": {
     "general": "Umum",
     "download_sources": "Sumber unduhan",

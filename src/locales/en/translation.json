@@ -24,7 +24,6 @@
     "queued": "{{title}} (Queued)",
     "paused": "{{title}} (Paused)",
     "show_playable_only_tooltip": "Show playable only",
-    "add_custom_game_tooltip": "Add custom game",
     "game_has_no_executable": "Game has no executable",
     "no_games_in_library": "No games in library",
     "no_results": "No results found",
@@ -102,7 +101,6 @@
     "download_from_repacks": "Download from Repacks",
     "repacks_description": "Download game files from community repacks (smaller file sizes, pre-configured).",
     "browse_repacks": "Browse Repacks",
-    "downloading": "Downloading...",
     "download_success": "Download completed successfully",
     "download_failed": "Download failed",
     "add_to_library": "Add to library",
@@ -134,7 +132,11 @@
     "cloud_save": "Cloud save",
     "update_game": "Auto Update",
     "auto_update_enabled_title": "Auto-Update Enabled",
-    "auto_update_enabled_message": "{{gameName}} is now on auto-update. Please restart Steam to apply changes."
+    "auto_update_enabled_message": "{{gameName}} is now on auto-update. Please restart Steam to apply changes.",
+    "denuvo_warning_title": "Denuvo Anti-Tamper Detected",
+    "denuvo_warning_message": "This game uses <strong>Denuvo Anti-Tamper</strong> protection, which cannot be removed by this tool. You must manually crack the game executable first before using Goldberg emulator, otherwise the game won't work.",
+    "drm_notice_title": "DRM Notice",
+    "drm_label": "DRM"
   },
   "settings": {
     "general": "General",

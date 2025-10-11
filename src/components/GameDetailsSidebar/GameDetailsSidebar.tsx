@@ -68,29 +68,59 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
         </SidebarSection>
       )}
 
-      {/* HYDRA PATTERN: Stats from Hydra API (independent of Steam API) */}
-      {stats && (
-        <SidebarSection title={t("stats")}>
-          <div className="game-details-sidebar__stats">
-            <div className="game-details-sidebar__stat-category">
-              <p className="game-details-sidebar__stat-title">
-                <DownloadIcon size={18} />
-                {t("download_count")}
-              </p>
-              <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.downloadCount)}
-              </p>
+      {/* Game Information (from Steam API - might be unavailable) */}
+      {shopDetails && (
+        <SidebarSection title={t("information")}>
+          <div className="game-details-sidebar__info-list">
+            {/* Release Date */}
+            <div className="game-details-sidebar__info-item">
+              <span className="game-details-sidebar__info-label">Release Date</span>
+              <span className="game-details-sidebar__info-value">{releaseDate}</span>
             </div>
 
-            <div className="game-details-sidebar__stat-category">
-              <p className="game-details-sidebar__stat-title">
-                <PeopleIcon size={18} />
-                {t("player_count")}
-              </p>
-              <p className="game-details-sidebar__stat-value">
-                {formatNumber(stats.playerCount)}
-              </p>
-            </div>
+            {/* Developers */}
+            {developers && (
+              <div className="game-details-sidebar__info-item">
+                <span className="game-details-sidebar__info-label">Developer</span>
+                <span className="game-details-sidebar__info-value">{developers}</span>
+              </div>
+            )}
+
+            {/* Publishers */}
+            {publishers && (
+              <div className="game-details-sidebar__info-item">
+                <span className="game-details-sidebar__info-label">Publisher</span>
+                <span className="game-details-sidebar__info-value">{publishers}</span>
+              </div>
+            )}
+
+            {/* Genres */}
+            {genres && (
+              <div className="game-details-sidebar__info-item">
+                <span className="game-details-sidebar__info-label">Genres</span>
+                <span className="game-details-sidebar__info-value">{genres}</span>
+              </div>
+            )}
+
+            {/* Free to Play */}
+            {shopDetails.is_free && (
+              <div className="game-details-sidebar__info-item">
+                <span className="game-details-sidebar__info-label">Price</span>
+                <span className="game-details-sidebar__info-value game-details-sidebar__info-value--free">
+                  Free to Play
+                </span>
+              </div>
+            )}
+
+            {/* DRM Notice */}
+            {shopDetails.drm_notice && (
+              <div className="game-details-sidebar__info-item game-details-sidebar__info-item--drm">
+                <span className="game-details-sidebar__info-label">{t("drm_label")}</span>
+                <span className="game-details-sidebar__info-value game-details-sidebar__info-value--drm">
+                  {shopDetails.drm_notice}
+                </span>
+              </div>
+            )}
           </div>
         </SidebarSection>
       )}
@@ -127,57 +157,35 @@ export function GameDetailsSidebar({ shopDetails, stats, achievements, shop, obj
         </SidebarSection>
       )}
 
-      {/* Game Information (from Steam API - might be unavailable) */}
-      {shopDetails && (
-        <>
-          <SidebarSection title={t("information")}>
-            <div className="game-details-sidebar__info-list">
-              {/* Release Date */}
-              <div className="game-details-sidebar__info-item">
-                <span className="game-details-sidebar__info-label">Release Date</span>
-                <span className="game-details-sidebar__info-value">{releaseDate}</span>
-              </div>
-
-              {/* Developers */}
-              {developers && (
-                <div className="game-details-sidebar__info-item">
-                  <span className="game-details-sidebar__info-label">Developer</span>
-                  <span className="game-details-sidebar__info-value">{developers}</span>
-                </div>
-              )}
-
-              {/* Publishers */}
-              {publishers && (
-                <div className="game-details-sidebar__info-item">
-                  <span className="game-details-sidebar__info-label">Publisher</span>
-                  <span className="game-details-sidebar__info-value">{publishers}</span>
-                </div>
-              )}
-
-              {/* Genres */}
-              {genres && (
-                <div className="game-details-sidebar__info-item">
-                  <span className="game-details-sidebar__info-label">Genres</span>
-                  <span className="game-details-sidebar__info-value">{genres}</span>
-                </div>
-              )}
-
-              {/* Free to Play */}
-              {shopDetails.is_free && (
-                <div className="game-details-sidebar__info-item">
-                  <span className="game-details-sidebar__info-label">Price</span>
-                  <span className="game-details-sidebar__info-value game-details-sidebar__info-value--free">
-                    Free to Play
-                  </span>
-                </div>
-              )}
+      {/* HYDRA PATTERN: Stats from Hydra API (independent of Steam API) */}
+      {stats && (
+        <SidebarSection title={t("stats")}>
+          <div className="game-details-sidebar__stats">
+            <div className="game-details-sidebar__stat-category">
+              <p className="game-details-sidebar__stat-title">
+                <DownloadIcon size={18} />
+                {t("download_count")}
+              </p>
+              <p className="game-details-sidebar__stat-value">
+                {formatNumber(stats.downloadCount)}
+              </p>
             </div>
-          </SidebarSection>
 
-          {/* Language Support */}
-          <GameLanguageSection shopDetails={shopDetails} />
-        </>
+            <div className="game-details-sidebar__stat-category">
+              <p className="game-details-sidebar__stat-title">
+                <PeopleIcon size={18} />
+                {t("player_count")}
+              </p>
+              <p className="game-details-sidebar__stat-value">
+                {formatNumber(stats.playerCount)}
+              </p>
+            </div>
+          </div>
+        </SidebarSection>
       )}
+
+      {/* Language Support */}
+      {shopDetails && <GameLanguageSection shopDetails={shopDetails} />}
     </aside>
   );
 }

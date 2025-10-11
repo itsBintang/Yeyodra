@@ -118,6 +118,52 @@
 }
 
 // Unlock Method Section
+// DRM Warning Section
+.cracking-drm-warning {
+  padding: globals.$spacing-unit * 1.5 globals.$spacing-unit * 2;
+  border-bottom: 1px solid globals.$border-color;
+  
+  &--denuvo {
+    background: rgba(239, 68, 68, 0.1); // Red tint
+    border-left: 4px solid #ef4444;
+  }
+  
+  &--info {
+    background: rgba(59, 130, 246, 0.1); // Blue tint
+    border-left: 4px solid #3b82f6;
+  }
+}
+
+.cracking-drm-warning-header {
+  display: flex;
+  align-items: center;
+  gap: globals.$spacing-unit;
+  margin-bottom: globals.$spacing-unit;
+  
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: globals.$muted-color;
+    margin: 0;
+  }
+}
+
+.cracking-drm-warning-icon {
+  font-size: 20px;
+}
+
+.cracking-drm-warning-text {
+  font-size: 13px;
+  color: globals.$body-color;
+  line-height: 1.5;
+  margin: 0;
+  
+  strong {
+    color: globals.$muted-color;
+    font-weight: 600;
+  }
+}
+
 .cracking-unlock-method {
   padding: globals.$spacing-unit * 1.5 globals.$spacing-unit * 2;
   border-bottom: 1px solid globals.$border-color;

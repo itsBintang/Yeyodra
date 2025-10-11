@@ -305,6 +305,7 @@ function GameDetailsContent() {
             appId={objectId || ""}
             gameName={gameTitle}
             gameLogoUrl={game.logoImageUrl || undefined}
+            drmNotice={shopDetails?.drm_notice}
           />
         </>
       )}

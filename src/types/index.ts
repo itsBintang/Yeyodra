@@ -141,6 +141,7 @@ export interface SteamAppDetails {
   genres?: SteamGenre[];
   categories?: SteamCategory[];
   supported_languages: string;
+  drm_notice?: string; // DRM information (Denuvo, etc)
   pc_requirements: {
     minimum: string;
     recommended: string;

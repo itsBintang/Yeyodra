@@ -599,6 +599,8 @@ pub struct SteamAppDetails {
     pub linux_requirements: Requirements,
     pub release_date: ReleaseDate,
     pub content_descriptors: ContentDescriptors,
+    #[serde(default)]
+    pub drm_notice: Option<String>, // DRM information (Denuvo, etc)
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
