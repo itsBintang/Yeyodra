@@ -197,12 +197,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
-
-- Inspired by [Hydra Launcher](https://github.com/hydralauncher/hydra)
-- Icons from [Primer Octicons](https://primer.style/octicons/)
-- UI components inspired by modern design patterns
-
 ---
 
 ## 📊 Statistics
