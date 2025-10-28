@@ -78,7 +78,7 @@
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
 | **OS** | Windows 10 (64-bit) | Windows 11 |
-| **RAM** | 4 GB | 8 GB or more |
+| **RAM** | 70 MB | 300 MB or more |
 | **Storage** | 500 MB free space | 1 GB+ for games |
 | **Internet** | Required for downloads | Broadband connection |
 
@@ -210,5 +210,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </div>
 
 ---
+
 
 
